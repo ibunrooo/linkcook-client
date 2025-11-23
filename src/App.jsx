@@ -26,7 +26,7 @@ function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/recipes" element={<Recipes />} />
-          <Route path="/recipes/new" element={<RecipeCreate />} />
+          <Route path="/recipes/create" element={<RecipeCreate />} />
           <Route path="/recipes/:id" element={<RecipeDetail />} />
           {/* 나중에 추가할 예정 */}
           {/* <Route path="/share" element={<Share />} /> */}

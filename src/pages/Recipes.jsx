@@ -26,7 +26,7 @@ function Recipes() {
       {/* ➕ 레시피 등록 버튼 */}
       <div style={{ marginBottom: "20px" }}>
         <Link
-          to="/recipes/new"
+          to="/recipes/create"
           style={{
             display: "inline-block",
             padding: "10px 16px",
