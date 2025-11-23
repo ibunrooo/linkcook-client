@@ -3,6 +3,7 @@ import { Routes, Route, Link } from 'react-router-dom';
 import Home from './pages/Home';
 import Recipes from './pages/Recipes.jsx';
 import RecipeDetail from './pages/RecipeDetail.jsx';
+import RecipeCreate from './pages/RecipeCreate';
 import Share from './pages/Share';
 import GroupBuy from './pages/GroupBuy';
 
@@ -25,7 +26,7 @@ function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/recipes" element={<Recipes />} />
-          {/* 오늘 만들 주인공 */}
+          <Route path="/recipes/new" element={<RecipeCreate />} />
           <Route path="/recipes/:id" element={<RecipeDetail />} />
           {/* 나중에 추가할 예정 */}
           {/* <Route path="/share" element={<Share />} /> */}
