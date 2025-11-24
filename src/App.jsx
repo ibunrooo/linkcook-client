@@ -1,17 +1,18 @@
 // src/App.jsx
 import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
 import Recipes from './pages/Recipes';
-import RecipeDetail from './pages/RecipeDetail';
 import RecipeCreate from './pages/RecipeCreate';
+import RecipeDetail from './pages/RecipeDetail';
 import ShareList from './pages/ShareList';
 import ShareCreate from './pages/ShareCreate';
 import GroupBuyList from './pages/GroupBuyList';
 import GroupBuyCreate from './pages/GroupBuyCreate';
+import GroupBuyDetail from "./pages/GroupBuyDetail";
 
 const layoutStyles = {
   app: {
     minHeight: '100vh',
-    backgroundColor: '#ffffff', // 🔥 그라데이션 제거, 깔끔한 흰색
+    backgroundColor: '#ffffff', // 배경색
     fontFamily:
       '-apple-system, BlinkMacSystemFont, system-ui, -apple-system, "Segoe UI", sans-serif',
     color: '#222',
@@ -33,7 +34,7 @@ const layoutStyles = {
     fontSize: '1.8rem',
     fontWeight: 800,
     letterSpacing: '0.04em',
-    color: '#4CAF50', // ✅ 연두색으로 변경
+    color: '#4CAF50',
   },
   tagline: {
     fontSize: '0.9rem',
@@ -148,6 +149,7 @@ function App() {
             {/* 공동구매 */}
             <Route path="/groupbuy" element={<GroupBuyList />} />
             <Route path="/groupbuy/create" element={<GroupBuyCreate />} />
+            <Route path="/groupbuy/:id" element={<GroupBuyDetail />} />
           </Routes>
         </main>
       </BrowserRouter>

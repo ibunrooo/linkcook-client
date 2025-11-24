@@ -83,51 +83,57 @@ function GroupBuyList() {
             new Date(item.deadline) < new Date() || percent >= 100;
 
           return (
-            <article
+            <Link
               key={item._id}
-              style={{
-                background: "#fff",
-                borderRadius: "16px",
-                padding: "1rem 1.1rem",
-                border: "1px solid #eee",
-                boxShadow: "0 3px 10px rgba(0,0,0,0.06)",
-              }}
+              to={`/groupbuy/${item._id}`}
+              style={{ textDecoration: "none", color: "inherit" }}
             >
-              <h3 style={{ margin: 0 }}>{item.title}</h3>
-              <p style={{ margin: "0.4rem 0", color: "#555" }}>
-                {item.description}
-              </p>
-
-              <div
+              <article
                 style={{
-                  margin: "0.6rem 0",
-                  height: "1px",
-                  background: "#eee",
-                }}
-              />
-
-              <p
-                style={{
-                  margin: 0,
-                  fontSize: "0.85rem",
-                  color: isClosed ? "#b33" : "#555",
+                  background: "#fff",
+                  borderRadius: "16px",
+                  padding: "1rem 1.1rem",
+                  border: "1px solid #eee",
+                  boxShadow: "0 3px 10px rgba(0,0,0,0.06)",
+                  cursor: "pointer",
                 }}
               >
-                {isClosed
-                  ? "📌 종료됨"
-                  : `참여 ${item.currentCount}/${item.targetCount}명 (${percent}%)`}
-              </p>
-
-              <p style={{ margin: "0.2rem 0", fontSize: "0.85rem" }}>
-                마감일: {item.deadline?.slice(0, 10)}
-              </p>
-
-              {item.price && (
-                <p style={{ margin: 0, fontSize: "0.85rem" }}>
-                  가격: {item.price.toLocaleString()}원
+                <h3 style={{ margin: 0 }}>{item.title}</h3>
+                <p style={{ margin: "0.4rem 0", color: "#555" }}>
+                  {item.description}
                 </p>
-              )}
-            </article>
+
+                <div
+                  style={{
+                    margin: "0.6rem 0",
+                    height: "1px",
+                    background: "#eee",
+                  }}
+                />
+
+                <p
+                  style={{
+                    margin: 0,
+                    fontSize: "0.85rem",
+                    color: isClosed ? "#b33" : "#555",
+                  }}
+                >
+                  {isClosed
+                    ? "📌 종료됨"
+                    : `참여 ${item.currentCount}/${item.targetCount}명 (${percent}%)`}
+                </p>
+
+                <p style={{ margin: "0.2rem 0", fontSize: "0.85rem" }}>
+                  마감일: {item.deadline?.slice(0, 10)}
+                </p>
+
+                {item.price && (
+                  <p style={{ margin: 0, fontSize: "0.85rem" }}>
+                    가격: {item.price.toLocaleString()}원
+                  </p>
+                )}
+              </article>
+            </Link>
           );
         })}
       </div>
