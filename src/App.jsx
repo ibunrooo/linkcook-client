@@ -6,6 +6,7 @@ import RecipeCreate from './pages/RecipeCreate';
 import ShareList from './pages/ShareList';
 import ShareCreate from './pages/ShareCreate';
 import GroupBuyList from './pages/GroupBuyList';
+import GroupBuyCreate from './pages/GroupBuyCreate';
 
 const layoutStyles = {
   app: {
@@ -146,6 +147,7 @@ function App() {
 
             {/* 공동구매 */}
             <Route path="/groupbuy" element={<GroupBuyList />} />
+            <Route path="/groupbuy/create" element={<GroupBuyCreate />} />
           </Routes>
         </main>
       </BrowserRouter>
