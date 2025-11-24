@@ -1,66 +1,140 @@
 // src/pages/Recipes.jsx
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 
 function Recipes() {
   const [recipes, setRecipes] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
   useEffect(() => {
-    fetch("http://localhost:4000/api/recipes")
-      .then((res) => res.json())
-      .then((data) => {
-        setRecipes(data.data);
+    const fetchRecipes = async () => {
+      try {
+        const res = await fetch('http://localhost:4000/api/recipes');
+        const data = await res.json();
+
+        if (!res.ok || data.success === false) {
+          throw new Error(data.message || '레시피 목록을 불러오지 못했습니다.');
+        }
+
+        setRecipes(data.data || []);
+      } catch (err) {
+        console.error(err);
+        setError(err.message || '오류가 발생했습니다.');
+      } finally {
         setLoading(false);
-      })
-      .catch(() => setLoading(false));
+      }
+    };
+
+    fetchRecipes();
   }, []);
 
-  if (loading) return <div>Loading...</div>;
+  if (loading) return <p>레시피를 불러오는 중입니다...</p>;
+  if (error) return <p>에러: {error}</p>;
 
   return (
-    <div style={{ padding: "20px" }}>
-      {/* 제목 */}
-      <h1>레시피 목록</h1>
+    <div>
+      <header style={{ marginBottom: '1.5rem' }}>
+        <h2 style={{ marginBottom: '0.5rem' }}>레시피</h2>
+        <p style={{ margin: 0, color: '#555' }}>
+          요리 기록을 남기고 이웃과 아이디어를 나눠보세요.
+        </p>
+      </header>
 
-      {/* ➕ 레시피 등록 버튼 */}
-      <div style={{ marginBottom: "20px" }}>
+      <div
+        style={{
+          marginBottom: '1.5rem',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          gap: '1rem',
+        }}
+      >
+        <p style={{ margin: 0, fontSize: '0.95rem', color: '#666' }}>
+          총 <strong>{recipes.length}</strong>개의 레시피가 공유되고 있어요.
+        </p>
         <Link
           to="/recipes/create"
           style={{
-            display: "inline-block",
-            padding: "10px 16px",
-            background: "#4C67F7",
-            color: "white",
-            borderRadius: "8px",
-            textDecoration: "none",
+            textDecoration: 'none',
+            padding: '0.5rem 1rem',
+            borderRadius: '999px',
+            backgroundColor: '#ffb347',
+            color: '#412000',
+            fontWeight: 600,
+            boxShadow: '0 3px 10px rgba(255, 179, 71, 0.55)',
           }}
         >
-          ➕ 레시피 등록하기
+          레시피 등록
         </Link>
       </div>
 
-      <hr />
-
-      {/* 레시피가 없을 때 */}
-      {recipes.length === 0 && <p>등록된 레시피가 아직 없습니다.</p>}
-
-      {/* 레시피 목록 */}
-      <ul>
-        {recipes.map((r) => (
-          <li key={r._id} style={{ marginBottom: "12px" }}>
+      {recipes.length === 0 ? (
+        <p>등록된 레시피가 아직 없습니다.</p>
+      ) : (
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
+            gap: '1.2rem',
+          }}
+        >
+          {recipes.map((recipe) => (
             <Link
-              to={`/recipes/${r._id}`}
-              style={{ fontSize: "18px", fontWeight: "bold", color: "#333" }}
+              key={recipe._id}
+              to={`/recipes/${recipe._id}`}
+              style={{
+                textDecoration: 'none',
+                color: 'inherit',
+              }}
             >
-              {r.title}
+              <article
+                style={{
+                  backgroundColor: 'rgba(255,255,255,0.9)',
+                  borderRadius: '16px',
+                  padding: '1rem 1.1rem',
+                  boxShadow: '0 3px 12px rgba(0,0,0,0.06)',
+                  borderLeft: '6px solid #7bc96f',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '0.4rem',
+                  height: '100%',
+                }}
+              >
+                <h3
+                  style={{
+                    margin: 0,
+                    fontSize: '1.05rem',
+                  }}
+                >
+                  {recipe.title}
+                </h3>
+                {recipe.description && (
+                  <p
+                    style={{
+                      margin: 0,
+                      fontSize: '0.9rem',
+                      color: '#555',
+                    }}
+                  >
+                    {recipe.description}
+                  </p>
+                )}
+                <p
+                  style={{
+                    margin: '0.3rem 0 0',
+                    fontSize: '0.85rem',
+                    color: '#777',
+                  }}
+                >
+                  재료 {recipe.ingredients?.length || 0}개 · 작성자{' '}
+                  {recipe.author || '익명'}
+                </p>
+              </article>
             </Link>
-            <div style={{ fontSize: "14px", color: "#666" }}>
-              {r.description}
-            </div>
-          </li>
-        ))}
-      </ul>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

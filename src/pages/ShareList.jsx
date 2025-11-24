@@ -1,9 +1,8 @@
 // src/pages/ShareList.jsx
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 
 function ShareList() {
-  const navigate = useNavigate();
   const [shares, setShares] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -30,75 +29,50 @@ function ShareList() {
     fetchShares();
   }, []);
 
-  if (loading) return <p>나눔 목록을 불러오는 중입니다...</p>;
-  if (error) return <p>에러: {error}</p>;
-  if (shares.length === 0)
-    return (
-      <main style={{ padding: '2rem' }}>
-        <h2>식재료 나눔</h2>
-        <button
-          onClick={() => navigate('/share/create')}
-          style={{
-            padding: '0.5rem 1rem',
-            marginBottom: '1rem',
-            backgroundColor: '#7c3aed',
-            color: '#fff',
-            border: 'none',
-            borderRadius: 4,
-            cursor: 'pointer',
-          }}
-        >
-          나눔 등록하기
-        </button>
-        <p>등록된 나눔이 아직 없습니다.</p>
-      </main>
-    );
-
   return (
-    <main style={{ padding: '2rem' }}>
-      <h2>식재료 나눔</h2>
+    <section>
+      <div className="page-header">
+        <div>
+          <h2 className="page-title">식재료 나눔</h2>
+          <p className="page-subtitle">
+            아직 쓸 수 있는 재료를 버리는 대신, 근처 이웃에게 나눠주세요.
+          </p>
+        </div>
+        <Link to="/share/create" className="btn-primary">
+          나눔 등록하기
+        </Link>
+      </div>
 
-      <button
-        onClick={() => navigate('/share/create')}
-        style={{
-          padding: '0.5rem 1rem',
-          marginBottom: '1rem',
-          backgroundColor: '#7c3aed',
-          color: '#fff',
-          border: 'none',
-          borderRadius: 4,
-          cursor: 'pointer',
-        }}
-      >
-        나눔 등록하기
-      </button>
+      {loading && <p>나눔 목록을 불러오는 중입니다...</p>}
+      {error && <p style={{ color: 'var(--danger)' }}>에러: {error}</p>}
 
-      <ul style={{ listStyle: 'none', padding: 0, maxWidth: 700 }}>
-        {shares.map((share) => (
-          <li
-            key={share._id}
-            style={{
-              padding: '0.75rem 1rem',
-              border: '1px solid #eee',
-              borderRadius: 6,
-              marginBottom: '0.5rem',
-            }}
-          >
-            <strong>{share.item}</strong>{' '}
-            <span>
-              · 수량: {share.quantity || '-'} · 위치: {share.location}
-            </span>
-            {share.expiry && (
-              <span>
-                {' '}
-                · 소비기한:{' '}
-                {new Date(share.expiry).toLocaleDateString('ko-KR')}
-              </span>
-            )}
-          </li>
-        ))}
-      </ul>
-    </main>
+      {!loading && !error && shares.length === 0 && (
+        <div className="empty-state">
+          등록된 나눔이 아직 없습니다.  
+          오늘 냉장고를 한 번 둘러보고, 남는 재료를 올려볼까요?
+        </div>
+      )}
+
+      {!loading && !error && shares.length > 0 && (
+        <div className="card-list">
+          {shares.map((share) => (
+            <div className="card" key={share._id}>
+              <div className="card-title">{share.item}</div>
+              {share.description && (
+                <div className="card-meta">{share.description}</div>
+              )}
+              <div className="card-footer">
+                <span className="badge">나눔</span>
+                <span className="card-meta">
+                  수량 {share.quantity || '-'} · 위치 {share.location}
+                  {share.expiry && ` · 소비기한 ${share.expiry}`}
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </section>
   );
 }
 
