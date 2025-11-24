@@ -10,7 +10,7 @@ import GroupBuyList from './pages/GroupBuyList';
 const layoutStyles = {
   app: {
     minHeight: '100vh',
-    background: 'linear-gradient(180deg, #f6ffe9 0%, #fff8e6 45%, #ffffff 100%)',
+    backgroundColor: '#ffffff', // 🔥 그라데이션 제거, 깔끔한 흰색
     fontFamily:
       '-apple-system, BlinkMacSystemFont, system-ui, -apple-system, "Segoe UI", sans-serif',
     color: '#222',
@@ -32,7 +32,7 @@ const layoutStyles = {
     fontSize: '1.8rem',
     fontWeight: 800,
     letterSpacing: '0.04em',
-    color: '#5d3fd3', // 포인트 보라
+    color: '#4CAF50', // ✅ 연두색으로 변경
   },
   tagline: {
     fontSize: '0.9rem',
@@ -48,13 +48,13 @@ const layoutStyles = {
     textDecoration: 'none',
     padding: '0.4rem 0.9rem',
     borderRadius: '999px',
-    border: isPrimary ? 'none' : '1px solid rgba(0,0,0,0.08)',
-    backgroundColor: isPrimary ? '#7bc96f' : 'rgba(255,255,255,0.7)',
+    border: isPrimary ? 'none' : '1px solid rgba(0,0,0,0.06)',
+    backgroundColor: isPrimary ? '#7bc96f' : '#f9fafb',
     color: isPrimary ? '#1a2c10' : '#333',
     fontWeight: isPrimary ? 700 : 500,
     boxShadow: isPrimary
-      ? '0 2px 6px rgba(123, 201, 111, 0.45)'
-      : '0 1px 3px rgba(0,0,0,0.04)',
+      ? '0 2px 6px rgba(123, 201, 111, 0.4)'
+      : '0 1px 3px rgba(0,0,0,0.03)',
   }),
   main: {
     padding: '1.5rem 2rem 2.5rem',
@@ -68,14 +68,14 @@ function Home() {
     <main style={layoutStyles.main}>
       <section
         style={{
-          backgroundColor: 'rgba(255, 246, 214, 0.9)', // 노랑/주황 계열
-          borderRadius: '20px',
-          padding: '1.8rem 2rem',
-          boxShadow: '0 4px 18px rgba(0,0,0,0.06)',
-          border: '1px solid rgba(255, 196, 80, 0.4)',
+          backgroundColor: '#f9fff4', // 아주 연한 연두 톤 카드
+          borderRadius: '16px',
+          padding: '1.6rem 1.8rem',
+          boxShadow: '0 3px 12px rgba(0,0,0,0.04)',
+          border: '1px solid rgba(123, 201, 111, 0.25)',
         }}
       >
-        <h2 style={{ margin: 0, fontSize: '1.5rem' }}>오늘의 식탁을 나누는 기록</h2>
+        <h2 style={{ margin: 0, fontSize: '1.4rem' }}>오늘의 식탁을 나누는 기록</h2>
         <p style={{ marginTop: '0.8rem', lineHeight: 1.6 }}>
           냉장고 속 남은 재료로 만든 레시피를 기록하고,
           <br />
@@ -144,7 +144,7 @@ function App() {
             <Route path="/share" element={<ShareList />} />
             <Route path="/share/create" element={<ShareCreate />} />
 
-            {/* 공동구매 (임시 리스트) */}
+            {/* 공동구매 */}
             <Route path="/groupbuy" element={<GroupBuyList />} />
           </Routes>
         </main>

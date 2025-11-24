@@ -90,14 +90,14 @@ function Recipes() {
             >
               <article
                 style={{
-                  backgroundColor: 'rgba(255,255,255,0.9)',
+                  backgroundColor: '#ffffff', // 카드 완전 흰색
                   borderRadius: '16px',
                   padding: '1rem 1.1rem',
                   boxShadow: '0 3px 12px rgba(0,0,0,0.06)',
-                  borderLeft: '6px solid #7bc96f',
+                  border: '1px solid rgba(0,0,0,0.04)', // 살짝 테두리만
                   display: 'flex',
                   flexDirection: 'column',
-                  gap: '0.4rem',
+                  gap: '0.45rem',
                   height: '100%',
                 }}
               >
@@ -109,6 +109,7 @@ function Recipes() {
                 >
                   {recipe.title}
                 </h3>
+
                 {recipe.description && (
                   <p
                     style={{
@@ -120,9 +121,19 @@ function Recipes() {
                     {recipe.description}
                   </p>
                 )}
+
+                {/* 🔹 설명과 메타 사이 구분선 */}
+                <div
+                  style={{
+                    margin: '0.5rem 0 0.3rem',
+                    height: '1px',
+                    backgroundColor: '#eee',
+                  }}
+                />
+
                 <p
                   style={{
-                    margin: '0.3rem 0 0',
+                    margin: 0,
                     fontSize: '0.85rem',
                     color: '#777',
                   }}
