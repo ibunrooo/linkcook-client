@@ -116,7 +116,8 @@ function GroupBuyDetail() {
     leftText = `${diffDays}일 ${diffHours}시간 ${diffMinutes}분 남음`;
   }
 
-  const perPersonPrice = groupBuy.pricePerUnit || 0;
+  // 🔹 pricePerUnit을 숫자로만 한 번 더 보정 (값 제한 X, 단순 형변환)
+  const perPersonPrice = Number(groupBuy.pricePerUnit) || 0;
 
   return (
     <div style={pageStyle}>
@@ -273,31 +274,34 @@ function GroupBuyDetail() {
 
         {/* 참여 버튼 / 메시지 */}
         {!isClosed && (
-          <button
-            onClick={handleJoin}
-            disabled={isJoining || participantCount >= totalUnits}
-            style={{
-              border: 'none',
-              borderRadius: '999px',
-              padding: '0.9rem 2.5rem',
-              fontSize: '1rem',
-              fontWeight: 600,
-              color: '#ffffff',
-              cursor:
-                isJoining || participantCount >= totalUnits
-                  ? 'not-allowed'
-                  : 'pointer',
-              background:
-                'linear-gradient(90deg, #34d399 0%, #facc15 50%, #fb923c 100%)',
-              boxShadow: '0 10px 25px rgba(251, 146, 60, 0.35)',
-            }}
-          >
-            {participantCount >= totalUnits
-              ? '모집 인원 완료'
-              : isJoining
-              ? '참여 중...'
-              : '공동구매 참여하기'}
-          </button>
+          <div style={{ textAlign: 'center' }}>
+            <button
+              onClick={handleJoin}
+              disabled={isJoining || participantCount >= totalUnits}
+              style={{
+                border: 'none',
+                borderRadius: '999px',
+                padding: '0.9rem 2.5rem',
+                fontSize: '1rem',
+                fontWeight: 600,
+                color: '#1f2933', // 더 어두운 글자색
+                cursor:
+                  isJoining || participantCount >= totalUnits
+                    ? 'not-allowed'
+                    : 'pointer',
+                background:
+                  'linear-gradient(90deg, #bbf7d0 0%, #fde68a 50%, #fed7aa 100%)', // 조금 더 연한 그라데이션
+                boxShadow: '0 10px 25px rgba(251, 146, 60, 0.25)',
+                display: 'inline-block',
+              }}
+            >
+              {participantCount >= totalUnits
+                ? '모집 인원 완료'
+                : isJoining
+                ? '참여 중...'
+                : '공동구매 참여하기'}
+            </button>
+          </div>
         )}
 
         {successMsg && (
@@ -306,6 +310,7 @@ function GroupBuyDetail() {
               marginTop: '1rem',
               color: '#059669',
               fontWeight: 500,
+              textAlign: 'center',
             }}
           >
             {successMsg}
@@ -317,6 +322,7 @@ function GroupBuyDetail() {
               marginTop: '1rem',
               color: '#ef4444',
               fontWeight: 500,
+              textAlign: 'center',
             }}
           >
             공동구매가 종료되었습니다.
