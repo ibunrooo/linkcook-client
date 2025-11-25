@@ -5,6 +5,7 @@ import RecipeCreate from './pages/RecipeCreate';
 import RecipeDetail from './pages/RecipeDetail';
 import ShareList from './pages/ShareList';
 import ShareCreate from './pages/ShareCreate';
+import ShareDetail from "./pages/ShareDetail";
 import GroupBuyList from './pages/GroupBuyList';
 import GroupBuyCreate from './pages/GroupBuyCreate';
 import GroupBuyDetail from "./pages/GroupBuyDetail";
@@ -145,6 +146,7 @@ function App() {
             {/* 나눔 */}
             <Route path="/share" element={<ShareList />} />
             <Route path="/share/create" element={<ShareCreate />} />
+            <Route path="/share/:id" element={<ShareDetail />} />
 
             {/* 공동구매 */}
             <Route path="/groupbuy" element={<GroupBuyList />} />
