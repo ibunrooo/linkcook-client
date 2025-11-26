@@ -1,6 +1,7 @@
 // src/pages/RecipeDetail.jsx
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import WhiteCard from '../components/common/WhiteCard'; // ✅ 추가
 
 const pageStyle = {
   maxWidth: '960px',
@@ -8,12 +9,8 @@ const pageStyle = {
   padding: '2rem 1.5rem 4rem',
 };
 
-const cardStyle = {
-  backgroundColor: '#ffffff',
-  borderRadius: '18px',
-  boxShadow: '0 8px 20px rgba(0,0,0,0.04)',
-  padding: '2rem',
-};
+// cardStyle는 WhiteCard로 대체하므로 더 이상 필요 없음 (지워도 됨)
+// const cardStyle = { ... };
 
 function RecipeDetail() {
   const { id } = useParams();
@@ -26,7 +23,7 @@ function RecipeDetail() {
     const fetchRecipe = async () => {
       try {
         const res = await fetch(`http://localhost:4000/api/recipes/${id}`);
-        const data = await res.json();
+      const data = await res.json();
 
         if (!res.ok || data.success === false) {
           throw new Error(data.message || '레시피 정보를 불러오지 못했습니다.');
@@ -53,7 +50,6 @@ function RecipeDetail() {
 
   return (
     <div style={pageStyle}>
-      {/* 뒤로가기 링크 – 색을 공동구매와 통일 (회색) */}
       <button
         onClick={() => navigate(-1)}
         style={{
@@ -67,7 +63,8 @@ function RecipeDetail() {
         ← 레시피 목록으로
       </button>
 
-      <div style={cardStyle}>
+      {/* ✅ 공통 카드 컴포넌트로 교체 */}
+      <WhiteCard>
         {/* 제목 & 한 줄 소개 */}
         <h2
           style={{
@@ -143,7 +140,7 @@ function RecipeDetail() {
             </ol>
           )}
         </section>
-      </div>
+      </WhiteCard>
     </div>
   );
 }

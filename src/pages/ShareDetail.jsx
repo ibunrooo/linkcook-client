@@ -1,6 +1,7 @@
 // src/pages/ShareDetail.jsx
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import WhiteCard from "../components/common/WhiteCard"; // ✅ 추가
 
 const pageStyle = {
   maxWidth: "960px",
@@ -8,12 +9,7 @@ const pageStyle = {
   padding: "2rem 1.5rem 4rem",
 };
 
-const cardStyle = {
-  backgroundColor: "#ffffff",
-  borderRadius: "18px",
-  boxShadow: "0 8px 20px rgba(0,0,0,0.04)",
-  padding: "2rem",
-};
+// const cardStyle = { ... }  // ✅ WhiteCard가 대신하므로 제거 가능
 
 function ShareDetail() {
   const { id } = useParams();
@@ -92,8 +88,8 @@ function ShareDetail() {
         ← 나눔 목록으로
       </button>
 
-      <div style={cardStyle}>
-        {/* 이미지가 있다면 상단에 표시 (선택) */}
+      {/* ✅ WhiteCard로 감싸기 */}
+      <WhiteCard>
         {share.image && (
           <div
             style={{
@@ -223,7 +219,7 @@ function ShareDetail() {
             </div>
           )}
         </div>
-      </div>
+      </WhiteCard>
     </div>
   );
 }

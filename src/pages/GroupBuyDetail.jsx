@@ -1,6 +1,7 @@
 // src/pages/GroupBuyDetail.jsx
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import WhiteCard from '../components/common/WhiteCard'; // ✅ 추가
 
 const pageStyle = {
   maxWidth: '960px',
@@ -8,12 +9,7 @@ const pageStyle = {
   padding: '2rem 1.5rem 4rem',
 };
 
-const cardStyle = {
-  backgroundColor: '#ffffff',
-  borderRadius: '18px',
-  boxShadow: '0 8px 20px rgba(0,0,0,0.04)',
-  padding: '2rem',
-};
+// const cardStyle = { ... } // ✅ WhiteCard로 대체
 
 const progressBarOuter = {
   width: '100%',
@@ -77,7 +73,7 @@ function GroupBuyDetail() {
         throw new Error(data.message || '공동구매 참여에 실패했습니다.');
       }
 
-      setGroupBuy(data.data); // 최신 상태로 업데이트
+      setGroupBuy(data.data);
       setSuccessMsg('공동구매에 참여했습니다!');
     } catch (err) {
       console.error(err);
@@ -116,7 +112,6 @@ function GroupBuyDetail() {
     leftText = `${diffDays}일 ${diffHours}시간 ${diffMinutes}분 남음`;
   }
 
-  // 🔹 pricePerUnit을 숫자로만 한 번 더 보정 (값 제한 X, 단순 형변환)
   const perPersonPrice = Number(groupBuy.pricePerUnit) || 0;
 
   return (
@@ -134,7 +129,8 @@ function GroupBuyDetail() {
         ← 공동구매 목록으로
       </button>
 
-      <div style={cardStyle}>
+      {/* ✅ WhiteCard로 교체 */}
+      <WhiteCard>
         <h2
           style={{
             fontSize: '1.8rem',
@@ -284,13 +280,13 @@ function GroupBuyDetail() {
                 padding: '0.9rem 2.5rem',
                 fontSize: '1rem',
                 fontWeight: 600,
-                color: '#1f2933', // 더 어두운 글자색
+                color: '#1f2933',
                 cursor:
                   isJoining || participantCount >= totalUnits
                     ? 'not-allowed'
                     : 'pointer',
                 background:
-                  'linear-gradient(90deg, #bbf7d0 0%, #fde68a 50%, #fed7aa 100%)', // 조금 더 연한 그라데이션
+                  'linear-gradient(90deg, #bbf7d0 0%, #fde68a 50%, #fed7aa 100%)',
                 boxShadow: '0 10px 25px rgba(251, 146, 60, 0.25)',
                 display: 'inline-block',
               }}
@@ -328,7 +324,7 @@ function GroupBuyDetail() {
             공동구매가 종료되었습니다.
           </p>
         )}
-      </div>
+      </WhiteCard>
     </div>
   );
 }
