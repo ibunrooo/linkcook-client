@@ -1,11 +1,23 @@
 // src/pages/RecipeDetail.jsx
 import { useEffect, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:4000';
+const pageStyle = {
+  maxWidth: '960px',
+  margin: '0 auto',
+  padding: '2rem 1.5rem 4rem',
+};
 
-export default function RecipeDetail() {
-  const { id } = useParams(); // /recipes/:id 에서 id 꺼내기
+const cardStyle = {
+  backgroundColor: '#ffffff',
+  borderRadius: '18px',
+  boxShadow: '0 8px 20px rgba(0,0,0,0.04)',
+  padding: '2rem',
+};
+
+function RecipeDetail() {
+  const { id } = useParams();
+  const navigate = useNavigate();
   const [recipe, setRecipe] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -13,18 +25,16 @@ export default function RecipeDetail() {
   useEffect(() => {
     const fetchRecipe = async () => {
       try {
-        setLoading(true);
-        setError('');
-
-        const res = await fetch(`${API_BASE_URL}/api/recipes/${id}`);
+        const res = await fetch(`http://localhost:4000/api/recipes/${id}`);
         const data = await res.json();
 
-        if (!res.ok || !data.success) {
-          throw new Error(data.message || '레시피를 불러오지 못했습니다.');
+        if (!res.ok || data.success === false) {
+          throw new Error(data.message || '레시피 정보를 불러오지 못했습니다.');
         }
 
         setRecipe(data.data);
       } catch (err) {
+        console.error(err);
         setError(err.message);
       } finally {
         setLoading(false);
@@ -34,36 +44,108 @@ export default function RecipeDetail() {
     fetchRecipe();
   }, [id]);
 
-  if (loading) return <p>불러오는 중...</p>;
-  if (error) return <p style={{ color: 'red' }}>에러: {error}</p>;
-  if (!recipe) return <p>레시피를 찾을 수 없습니다.</p>;
+  if (loading) return <p style={pageStyle}>레시피 정보를 불러오는 중입니다...</p>;
+  if (error) return <p style={pageStyle}>에러: {error}</p>;
+  if (!recipe) return <p style={pageStyle}>레시피 정보를 찾을 수 없습니다.</p>;
+
+  const ingredients = recipe.ingredients || [];
+  const steps = (recipe.steps || []).slice().sort((a, b) => a.order - b.order);
 
   return (
-    <div style={{ padding: '2rem' }}>
-      <Link to="/recipes" style={{ fontSize: 14 }}>
+    <div style={pageStyle}>
+      {/* 뒤로가기 링크 – 색을 공동구매와 통일 (회색) */}
+      <button
+        onClick={() => navigate(-1)}
+        style={{
+          border: 'none',
+          background: 'none',
+          color: '#6b7280',
+          marginBottom: '1rem',
+          cursor: 'pointer',
+        }}
+      >
         ← 레시피 목록으로
-      </Link>
+      </button>
 
-      <h1 style={{ marginTop: '1rem' }}>{recipe.title}</h1>
-      {recipe.description && <p>{recipe.description}</p>}
+      <div style={cardStyle}>
+        {/* 제목 & 한 줄 소개 */}
+        <h2
+          style={{
+            fontSize: '1.8rem',
+            marginBottom: '0.4rem',
+            fontWeight: '700',
+          }}
+        >
+          {recipe.title}
+        </h2>
+        {recipe.description && (
+          <p
+            style={{
+              color: '#4b5563',
+              marginBottom: '1.5rem',
+            }}
+          >
+            {recipe.description}
+          </p>
+        )}
 
-      <h2>재료</h2>
-      <ul>
-        {recipe.ingredients?.map((ing) => (
-          <li key={ing._id}>
-            {ing.name} {ing.amount && `- ${ing.amount}`}
-          </li>
-        ))}
-      </ul>
+        {/* 재료 */}
+        <section style={{ marginBottom: '2rem' }}>
+          <h3 style={{ fontSize: '1.1rem', fontWeight: 600, marginBottom: '0.8rem' }}>
+            재료
+          </h3>
+          {ingredients.length === 0 ? (
+            <p style={{ color: '#6b7280', fontSize: '0.95rem' }}>
+              등록된 재료 정보가 없습니다.
+            </p>
+          ) : (
+            <ul
+              style={{
+                margin: 0,
+                paddingLeft: '1.1rem',
+                lineHeight: 1.6,
+                color: '#374151',
+              }}
+            >
+              {ingredients.map((ing) => (
+                <li key={ing._id || ing.name}>
+                  {ing.name}
+                  {ing.amount ? ` - ${ing.amount}` : ''}
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
 
-      <h2>조리 순서</h2>
-      <ol>
-        {recipe.steps?.map((step) => (
-          <li key={step._id || step.order}>
-            {step.text}
-          </li>
-        ))}
-      </ol>
+        {/* 조리 순서 */}
+        <section>
+          <h3 style={{ fontSize: '1.1rem', fontWeight: 600, marginBottom: '0.8rem' }}>
+            조리 순서
+          </h3>
+          {steps.length === 0 ? (
+            <p style={{ color: '#6b7280', fontSize: '0.95rem' }}>
+              등록된 조리 순서가 없습니다.
+            </p>
+          ) : (
+            <ol
+              style={{
+                margin: 0,
+                paddingLeft: '1.3rem',
+                lineHeight: 1.7,
+                color: '#374151',
+              }}
+            >
+              {steps.map((step) => (
+                <li key={step._id || step.order} style={{ marginBottom: '0.3rem' }}>
+                  {step.text}
+                </li>
+              ))}
+            </ol>
+          )}
+        </section>
+      </div>
     </div>
   );
 }
+
+export default RecipeDetail;
