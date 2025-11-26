@@ -1,15 +1,14 @@
 // src/pages/GroupBuyDetail.jsx
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import WhiteCard from '../components/common/WhiteCard'; // ✅ 추가
+import apiClient from '../api/client';
+import WhiteCard from '../components/common/WhiteCard';
 
 const pageStyle = {
   maxWidth: '960px',
   margin: '0 auto',
   padding: '2rem 1.5rem 4rem',
 };
-
-// const cardStyle = { ... } // ✅ WhiteCard로 대체
 
 const progressBarOuter = {
   width: '100%',
@@ -39,12 +38,8 @@ function GroupBuyDetail() {
   useEffect(() => {
     const fetchDetail = async () => {
       try {
-        const res = await fetch(`http://localhost:4000/api/groupbuy/${id}`);
-        const data = await res.json();
-        if (!res.ok || data.success === false) {
-          throw new Error(data.message || '공동구매 정보를 불러오지 못했습니다.');
-        }
-        setGroupBuy(data.data);
+        const { data } = await apiClient.get(`/api/groupbuy/${id}`);
+        setGroupBuy(data);
       } catch (err) {
         console.error(err);
         setError(err.message);
@@ -63,17 +58,11 @@ function GroupBuyDetail() {
     setSuccessMsg('');
 
     try {
-      const res = await fetch(
-        `http://localhost:4000/api/groupbuy/${groupBuy._id}/join`,
-        { method: 'POST' }
+      const { data } = await apiClient.post(
+        `/api/groupbuy/${groupBuy._id}/join`,
+        {}
       );
-      const data = await res.json();
-
-      if (!res.ok || data.success === false) {
-        throw new Error(data.message || '공동구매 참여에 실패했습니다.');
-      }
-
-      setGroupBuy(data.data);
+      setGroupBuy(data);
       setSuccessMsg('공동구매에 참여했습니다!');
     } catch (err) {
       console.error(err);
@@ -88,9 +77,7 @@ function GroupBuyDetail() {
   if (!groupBuy) return <p style={pageStyle}>공동구매 정보를 찾을 수 없습니다.</p>;
 
   const participantCount = groupBuy.participants?.length || 0;
-  const totalUnits =
-    groupBuy.totalQuantity || groupBuy.maxParticipants || 1;
-
+  const totalUnits = groupBuy.totalQuantity || groupBuy.maxParticipants || 1;
   const rawPercent =
     totalUnits > 0 ? (participantCount / totalUnits) * 100 : 0;
   const progressPercent = Math.min(100, Math.round(rawPercent));
@@ -129,7 +116,6 @@ function GroupBuyDetail() {
         ← 공동구매 목록으로
       </button>
 
-      {/* ✅ WhiteCard로 교체 */}
       <WhiteCard>
         <h2
           style={{
@@ -200,7 +186,11 @@ function GroupBuyDetail() {
               1인 참여 금액
             </div>
             <div
-              style={{ fontSize: '1.3rem', fontWeight: '700', marginTop: '0.3rem' }}
+              style={{
+                fontSize: '1.3rem',
+                fontWeight: '700',
+                marginTop: '0.3rem',
+              }}
             >
               {perPersonPrice.toLocaleString()}원
             </div>
@@ -223,9 +213,7 @@ function GroupBuyDetail() {
           </div>
 
           <div>
-            <div style={{ fontSize: '0.9rem', color: '#6b7280' }}>
-              상태
-            </div>
+            <div style={{ fontSize: '0.9rem', color: '#6b7280' }}>상태</div>
             <div
               style={{
                 marginTop: '0.3rem',

@@ -1,349 +1,246 @@
 // src/pages/RecipeCreate.jsx
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import apiClient from '../api/client';
 
-const API_BASE = 'http://localhost:4000/api';
-
-export default function RecipeCreate() {
+function RecipeCreate() {
   const navigate = useNavigate();
 
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
+  const [ingredientsText, setIngredientsText] = useState(''); // 줄바꿈으로 재료 입력
+  const [stepsText, setStepsText] = useState(''); // 줄바꿈으로 순서 입력
   const [author, setAuthor] = useState('');
-  const [image, setImage] = useState('');
-
-  const [ingredients, setIngredients] = useState([
-    { name: '', amount: '' },
-  ]);
-
-  const [steps, setSteps] = useState([
-    { order: 1, text: '' },
-  ]);
-
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [successMsg, setSuccessMsg] = useState('');
 
-  // 재료 입력 변경
-  const handleIngredientChange = (index, field, value) => {
-    setIngredients(prev => {
-      const copy = [...prev];
-      copy[index] = { ...copy[index], [field]: value };
-      return copy;
-    });
-  };
-
-  const addIngredientRow = () => {
-    setIngredients(prev => [...prev, { name: '', amount: '' }]);
-  };
-
-  const removeIngredientRow = (index) => {
-    setIngredients(prev => {
-      if (prev.length === 1) return prev; // 최소 1줄 유지
-      const copy = [...prev];
-      copy.splice(index, 1);
-      return copy;
-    });
-  };
-
-  // 단계 입력 변경
-  const handleStepChange = (index, value) => {
-    setSteps(prev => {
-      const copy = [...prev];
-      copy[index] = { ...copy[index], text: value };
-      return copy;
-    });
-  };
-
-  const addStepRow = () => {
-    setSteps(prev => [
-      ...prev,
-      { order: prev.length + 1, text: '' },
-    ]);
-  };
-
-  const removeStepRow = (index) => {
-    setSteps(prev => {
-      if (prev.length === 1) return prev;
-      const copy = [...prev];
-      copy.splice(index, 1);
-      // order 다시 번호 매기기
-      return copy.map((s, i) => ({ ...s, order: i + 1 }));
-    });
-  };
-
-  // 폼 제출
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setSubmitting(true);
     setError('');
+    setSuccessMsg('');
 
-    if (!title.trim()) {
-      setError('레시피 제목은 필수입니다.');
-      return;
-    }
+    // 간단 파싱: "양파 1개" → { name: '양파 1개', amount: '' } 처럼 일단 name만
+    const ingredients = ingredientsText
+      .split('\n')
+      .map((line) => line.trim())
+      .filter(Boolean)
+      .map((line) => ({ name: line, amount: '' }));
 
-    setIsSubmitting(true);
+    const steps = stepsText
+      .split('\n')
+      .map((line) => line.trim())
+      .filter(Boolean)
+      .map((text, idx) => ({ order: idx + 1, text }));
+
     try {
-      const payload = {
+      const body = {
         title,
         description,
-        author,
-        image,
-        ingredients: ingredients
-          .filter(i => i.name.trim() !== '')
-          .map(i => ({
-            name: i.name.trim(),
-            amount: i.amount.trim(),
-          })),
-        steps: steps
-          .filter(s => s.text.trim() !== '')
-          .map((s, index) => ({
-            order: index + 1,
-            text: s.text.trim(),
-          })),
+        ingredients,
+        steps,
+        author: author || 'anonymous',
       };
 
-      const res = await fetch(`${API_BASE}/recipes`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
+      const data = await apiClient.post('/api/recipes', body);
 
-      const data = await res.json();
-
-      if (!res.ok || !data.success) {
-        throw new Error(data.message || '레시피 등록에 실패했습니다.');
-      }
-
-      // 등록 성공 → 상세 페이지로 이동 (data.data._id 기준)
+      setSuccessMsg('레시피가 등록되었습니다.');
+      // data.data 에 새 레시피가 있다고 가정
       const newId = data.data?._id;
       if (newId) {
-        navigate(`/recipes/${newId}`);
-      } else {
-        navigate('/recipes');
+        setTimeout(() => {
+          navigate(`/recipes/${newId}`);
+        }, 700);
       }
     } catch (err) {
       console.error(err);
       setError(err.message);
     } finally {
-      setIsSubmitting(false);
+      setSubmitting(false);
     }
   };
 
   return (
-    <main style={{ maxWidth: '720px', margin: '0 auto', padding: '2rem 1.5rem' }}>
-      <h1 style={{ fontSize: '2rem', fontWeight: 700, marginBottom: '1.5rem' }}>
-        레시피 등록
-      </h1>
+    <div
+      style={{
+        maxWidth: '720px',
+        margin: '0 auto',
+        padding: '2rem 1.5rem 4rem',
+      }}
+    >
+      <button
+        onClick={() => navigate(-1)}
+        style={{
+          border: 'none',
+          background: 'none',
+          color: '#6b7280',
+          marginBottom: '1rem',
+          cursor: 'pointer',
+        }}
+      >
+        ← 레시피 목록으로
+      </button>
 
-      <form onSubmit={handleSubmit} style={{ display: 'grid', gap: '1.5rem' }}>
-        {/* 기본 정보 */}
-        <section>
-          <label style={{ display: 'block', fontWeight: 600, marginBottom: '.5rem' }}>
-            레시피 제목 *
+      <h2 style={{ marginBottom: '1rem' }}>레시피 등록</h2>
+      <p style={{ marginTop: 0, marginBottom: '1.5rem', color: '#4b5563' }}>
+        나만의 레시피를 공유해보세요.
+      </p>
+
+      <form
+        onSubmit={handleSubmit}
+        style={{
+          backgroundColor: '#ffffff',
+          borderRadius: '16px',
+          padding: '1.5rem',
+          boxShadow: '0 8px 20px rgba(0,0,0,0.04)',
+        }}
+      >
+        {/* 제목 */}
+        <div style={{ marginBottom: '1rem' }}>
+          <label
+            htmlFor="title"
+            style={{ display: 'block', fontWeight: 600, marginBottom: '0.4rem' }}
+          >
+            제목
           </label>
           <input
+            id="title"
             type="text"
             value={title}
-            onChange={e => setTitle(e.target.value)}
-            placeholder="예) 김치볶음밥"
+            onChange={(e) => setTitle(e.target.value)}
             required
-            style={{ width: '100%', padding: '.6rem .8rem', borderRadius: 4, border: '1px solid #ccc' }}
+            style={{
+              width: '100%',
+              padding: '0.6rem 0.75rem',
+              borderRadius: '8px',
+              border: '1px solid #d1d5db',
+            }}
           />
+        </div>
 
-          <label style={{ display: 'block', fontWeight: 600, margin: '1rem 0 .5rem' }}>
-            한 줄 소개
+        {/* 한 줄 설명 */}
+        <div style={{ marginBottom: '1rem' }}>
+          <label
+            htmlFor="description"
+            style={{ display: 'block', fontWeight: 600, marginBottom: '0.4rem' }}
+          >
+            한 줄 설명 (선택)
           </label>
           <input
+            id="description"
             type="text"
             value={description}
-            onChange={e => setDescription(e.target.value)}
-            placeholder="남은 김치랑 밥으로 딱 좋은 레시피"
-            style={{ width: '100%', padding: '.6rem .8rem', borderRadius: 4, border: '1px solid #ccc' }}
+            onChange={(e) => setDescription(e.target.value)}
+            placeholder="예: 초간단 새벽 야식용 김치볶음밥"
+            style={{
+              width: '100%',
+              padding: '0.6rem 0.75rem',
+              borderRadius: '8px',
+              border: '1px solid #d1d5db',
+            }}
           />
+        </div>
 
-          <label style={{ display: 'block', fontWeight: 600, margin: '1rem 0 .5rem' }}>
-            작성자 이름
+        {/* 재료 */}
+        <div style={{ marginBottom: '1rem' }}>
+          <label
+            htmlFor="ingredients"
+            style={{ display: 'block', fontWeight: 600, marginBottom: '0.4rem' }}
+          >
+            재료 (줄바꿈으로 구분)
+          </label>
+          <textarea
+            id="ingredients"
+            value={ingredientsText}
+            onChange={(e) => setIngredientsText(e.target.value)}
+            rows={4}
+            placeholder={'예)\n김치 1컵\n밥 1공기\n대파 조금'}
+            style={{
+              width: '100%',
+              padding: '0.6rem 0.75rem',
+              borderRadius: '8px',
+              border: '1px solid #d1d5db',
+              resize: 'vertical',
+            }}
+          />
+        </div>
+
+        {/* 조리 순서 */}
+        <div style={{ marginBottom: '1rem' }}>
+          <label
+            htmlFor="steps"
+            style={{ display: 'block', fontWeight: 600, marginBottom: '0.4rem' }}
+          >
+            조리 순서 (줄바꿈으로 구분)
+          </label>
+          <textarea
+            id="steps"
+            value={stepsText}
+            onChange={(e) => setStepsText(e.target.value)}
+            rows={5}
+            placeholder={'예)\n팬에 기름을 두르고 파를 볶는다.\n김치를 넣고 함께 볶는다.\n밥을 넣고 골고루 섞어준다.'}
+            style={{
+              width: '100%',
+              padding: '0.6rem 0.75rem',
+              borderRadius: '8px',
+              border: '1px solid #d1d5db',
+              resize: 'vertical',
+            }}
+          />
+        </div>
+
+        {/* 작성자 */}
+        <div style={{ marginBottom: '1.2rem' }}>
+          <label
+            htmlFor="author"
+            style={{ display: 'block', fontWeight: 600, marginBottom: '0.4rem' }}
+          >
+            작성자 이름 (선택)
           </label>
           <input
+            id="author"
             type="text"
             value={author}
-            onChange={e => setAuthor(e.target.value)}
-            placeholder="닉네임 (선택)"
-            style={{ width: '100%', padding: '.6rem .8rem', borderRadius: 4, border: '1px solid #ccc' }}
-          />
-
-          <label style={{ display: 'block', fontWeight: 600, margin: '1rem 0 .5rem' }}>
-            이미지 URL
-          </label>
-          <input
-            type="text"
-            value={image}
-            onChange={e => setImage(e.target.value)}
-            placeholder="이미지 링크 (선택)"
-            style={{ width: '100%', padding: '.6rem .8rem', borderRadius: 4, border: '1px solid #ccc' }}
-          />
-        </section>
-
-        {/* 재료 목록 */}
-        <section>
-          <h2 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: '.5rem' }}>재료</h2>
-          {ingredients.map((ingredient, index) => (
-            <div
-              key={index}
-              style={{
-                display: 'grid',
-                gridTemplateColumns: '1.5fr 1fr auto',
-                gap: '.5rem',
-                marginBottom: '.5rem',
-              }}
-            >
-              <input
-                type="text"
-                placeholder="재료 이름"
-                value={ingredient.name}
-                onChange={e =>
-                  handleIngredientChange(index, 'name', e.target.value)
-                }
-                style={{ padding: '.5rem .7rem', borderRadius: 4, border: '1px solid #ccc' }}
-              />
-              <input
-                type="text"
-                placeholder="양 (예: 1컵, 200g)"
-                value={ingredient.amount}
-                onChange={e =>
-                  handleIngredientChange(index, 'amount', e.target.value)
-                }
-                style={{ padding: '.5rem .7rem', borderRadius: 4, border: '1px solid #ccc' }}
-              />
-              <button
-                type="button"
-                onClick={() => removeIngredientRow(index)}
-                style={{
-                  padding: '.5rem .8rem',
-                  borderRadius: 4,
-                  border: '1px solid #ddd',
-                  background: '#f5f5f5',
-                  cursor: 'pointer',
-                }}
-              >
-                삭제
-              </button>
-            </div>
-          ))}
-
-          <button
-            type="button"
-            onClick={addIngredientRow}
+            onChange={(e) => setAuthor(e.target.value)}
+            placeholder="닉네임 또는 이름"
             style={{
-              marginTop: '.5rem',
-              padding: '.5rem .9rem',
-              borderRadius: 4,
-              border: '1px dashed #aaa',
-              background: '#fafafa',
-              cursor: 'pointer',
+              width: '100%',
+              padding: '0.6rem 0.75rem',
+              borderRadius: '8px',
+              border: '1px solid #d1d5db',
             }}
-          >
-            + 재료 추가
-          </button>
-        </section>
+          />
+        </div>
 
-        {/* 조리 단계 */}
-        <section>
-          <h2 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: '.5rem' }}>조리 단계</h2>
-          {steps.map((step, index) => (
-            <div
-              key={index}
-              style={{ display: 'flex', alignItems: 'flex-start', gap: '.5rem', marginBottom: '.5rem' }}
-            >
-              <span style={{ marginTop: '.4rem', fontWeight: 600 }}>
-                {index + 1}.
-              </span>
-              <textarea
-                placeholder="조리 방법을 입력하세요"
-                value={step.text}
-                onChange={e => handleStepChange(index, e.target.value)}
-                rows={2}
-                style={{
-                  flex: 1,
-                  padding: '.5rem .7rem',
-                  borderRadius: 4,
-                  border: '1px solid #ccc',
-                  resize: 'vertical',
-                }}
-              />
-              <button
-                type="button"
-                onClick={() => removeStepRow(index)}
-                style={{
-                  padding: '.5rem .8rem',
-                  borderRadius: 4,
-                  border: '1px solid #ddd',
-                  background: '#f5f5f5',
-                  cursor: 'pointer',
-                  marginTop: '.2rem',
-                }}
-              >
-                삭제
-              </button>
-            </div>
-          ))}
-
-          <button
-            type="button"
-            onClick={addStepRow}
-            style={{
-              marginTop: '.5rem',
-              padding: '.5rem .9rem',
-              borderRadius: 4,
-              border: '1px dashed #aaa',
-              background: '#fafafa',
-              cursor: 'pointer',
-            }}
-          >
-            + 단계 추가
-          </button>
-        </section>
-
-        {/* 에러 / 버튼 */}
         {error && (
-          <p style={{ color: 'crimson', fontSize: '.9rem' }}>
-            {error}
-          </p>
+          <p style={{ color: '#dc2626', marginBottom: '0.8rem' }}>{error}</p>
+        )}
+        {successMsg && (
+          <p style={{ color: '#16a34a', marginBottom: '0.8rem' }}>{successMsg}</p>
         )}
 
-        <div style={{ display: 'flex', gap: '.75rem', marginTop: '.5rem' }}>
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            style={{
-              padding: '.7rem 1.4rem',
-              borderRadius: 999,
-              border: 'none',
-              background: '#4f46e5',
-              color: '#fff',
-              fontWeight: 600,
-              cursor: 'pointer',
-              opacity: isSubmitting ? 0.7 : 1,
-            }}
-          >
-            {isSubmitting ? '저장 중...' : '레시피 등록하기'}
-          </button>
-
-          <button
-            type="button"
-            onClick={() => navigate('/recipes')}
-            style={{
-              padding: '.7rem 1.2rem',
-              borderRadius: 999,
-              border: '1px solid #ddd',
-              background: '#fff',
-              cursor: 'pointer',
-            }}
-          >
-            취소
-          </button>
-        </div>
+        <button
+          type="submit"
+          disabled={submitting}
+          style={{
+            border: 'none',
+            borderRadius: '999px',
+            padding: '0.7rem 1.6rem',
+            fontSize: '0.95rem',
+            fontWeight: 600,
+            color: '#1f2933',
+            cursor: submitting ? 'not-allowed' : 'pointer',
+            background:
+              'linear-gradient(90deg, #bbf7d0 0%, #fde68a 50%, #fed7aa 100%)',
+            boxShadow: '0 8px 18px rgba(251, 146, 60, 0.25)',
+          }}
+        >
+          {submitting ? '등록 중...' : '레시피 등록하기'}
+        </button>
       </form>
-    </main>
+    </div>
   );
 }
+
+export default RecipeCreate;

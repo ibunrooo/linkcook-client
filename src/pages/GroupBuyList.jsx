@@ -1,24 +1,37 @@
 // src/pages/GroupBuyList.jsx
-import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
+import apiClient from '../api/client';
+
+const pageStyle = {
+  maxWidth: '960px',
+  margin: '0 auto',
+  padding: '2rem 1.5rem 4rem',
+};
+
+const cardStyle = {
+  backgroundColor: '#ffffff',
+  borderRadius: '16px',
+  padding: '1.25rem 1.4rem',
+  boxShadow: '0 4px 14px rgba(0,0,0,0.05)',
+  border: '1px solid #f3f4f6',
+  textDecoration: 'none',
+  color: '#111827',
+  display: 'block',
+};
 
 function GroupBuyList() {
-  const [groupbuys, setGroupbuys] = useState([]);
+  const [groupBuys, setGroupBuys] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [error, setError] = useState('');
 
   useEffect(() => {
     const fetchGroupBuys = async () => {
       try {
-        const res = await fetch("http://localhost:4000/api/groupbuy");
-        const data = await res.json();
-
-        if (!res.ok || data.success === false) {
-          throw new Error(data.message || "공동구매 목록을 불러오지 못했습니다.");
-        }
-
-        setGroupbuys(data.data || []);
+        const { data } = await apiClient.get('/api/groupbuy');
+        setGroupBuys(data || []);
       } catch (err) {
+        console.error(err);
         setError(err.message);
       } finally {
         setLoading(false);
@@ -28,115 +41,104 @@ function GroupBuyList() {
     fetchGroupBuys();
   }, []);
 
-  if (loading) return <p>공동구매 목록을 불러오는 중입니다...</p>;
-  if (error) return <p>에러: {error}</p>;
+  if (loading) return <p style={pageStyle}>공동구매 목록을 불러오는 중입니다...</p>;
+  if (error) return <p style={pageStyle}>에러: {error}</p>;
 
   return (
-    <div>
-      <header style={{ marginBottom: "1.5rem" }}>
-        <h2 style={{ marginBottom: "0.5rem" }}>공동구매</h2>
-        <p style={{ margin: 0, color: "#555" }}>
-          이웃과 함께 저렴하게 구매해보세요!
+    <div style={pageStyle}>
+      <header style={{ marginBottom: '1.5rem' }}>
+        <h2 style={{ marginBottom: '0.4rem' }}>공동구매</h2>
+        <p style={{ margin: 0, color: '#4b5563', fontSize: '0.95rem' }}>
+          이웃과 함께 저렴하게 장을 보고, 식재료를 나눠보세요.
         </p>
       </header>
 
       <div
         style={{
-          marginBottom: "1.5rem",
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
+          marginBottom: '1.5rem',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
         }}
       >
-        <p style={{ margin: 0 }}>
-          총 <strong>{groupbuys.length}</strong>개의 공동구매가 열려있습니다.
+        <p style={{ margin: 0, fontSize: '0.95rem' }}>
+          총 <strong>{groupBuys.length}</strong>개의 공동구매가 열려있어요.
         </p>
 
         <Link
           to="/groupbuy/create"
           style={{
-            padding: "0.5rem 1rem",
-            borderRadius: "999px",
-            backgroundColor: "#ffb347",
-            color: "#3c2100",
+            padding: '0.55rem 1.3rem',
+            borderRadius: '999px',
+            backgroundColor: '#fbbf24',
+            color: '#3b2600',
             fontWeight: 600,
-            textDecoration: "none",
+            textDecoration: 'none',
+            fontSize: '0.95rem',
           }}
         >
           공동구매 등록
         </Link>
       </div>
 
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))",
-          gap: "1.2rem",
-        }}
-      >
-        {groupbuys.map((item) => {
-          const percent = Math.min(
-            Math.round((item.currentCount / item.targetCount) * 100),
-            100
-          );
-          const isClosed =
-            new Date(item.deadline) < new Date() || percent >= 100;
+      {groupBuys.length === 0 ? (
+        <p style={{ color: '#6b7280' }}>아직 등록된 공동구매가 없습니다.</p>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          {groupBuys.map((gb) => {
+            const participantCount = gb.participants?.length || 0;
+            const totalUnits = gb.totalQuantity || gb.maxParticipants || 1;
+            const rawPercent =
+              totalUnits > 0 ? (participantCount / totalUnits) * 100 : 0;
+            const percent = Math.min(100, Math.round(rawPercent));
 
-          return (
-            <Link
-              key={item._id}
-              to={`/groupbuy/${item._id}`}
-              style={{ textDecoration: "none", color: "inherit" }}
-            >
-              <article
-                style={{
-                  background: "#fff",
-                  borderRadius: "16px",
-                  padding: "1rem 1.1rem",
-                  border: "1px solid #eee",
-                  boxShadow: "0 3px 10px rgba(0,0,0,0.06)",
-                  cursor: "pointer",
-                }}
+            const isClosed =
+              gb.status !== 'open' || new Date(gb.deadline) < new Date();
+
+            return (
+              <Link
+                key={gb._id}
+                to={`/groupbuy/${gb._id}`}
+                style={cardStyle}
               >
-                <h3 style={{ margin: 0 }}>{item.title}</h3>
-                <p style={{ margin: "0.4rem 0", color: "#555" }}>
-                  {item.description}
-                </p>
-
-                <div
+                <h3 style={{ margin: 0 }}>{gb.title}</h3>
+                <p
                   style={{
-                    margin: "0.6rem 0",
-                    height: "1px",
-                    background: "#eee",
+                    margin: '0.25rem 0 0.4rem',
+                    color: '#4b5563',
+                    fontSize: '0.9rem',
                   }}
-                />
+                >
+                  {gb.item}
+                </p>
 
                 <p
                   style={{
                     margin: 0,
-                    fontSize: "0.85rem",
-                    color: isClosed ? "#b33" : "#555",
+                    fontSize: '0.86rem',
+                    color: isClosed ? '#b91c1c' : '#374151',
                   }}
                 >
                   {isClosed
-                    ? "📌 종료됨"
-                    : `참여 ${item.currentCount}/${item.targetCount}명 (${percent}%)`}
+                    ? '📌 종료된 공동구매'
+                    : `참여 ${participantCount} / ${totalUnits} · 진행률 ${percent}%`}
                 </p>
 
-                <p style={{ margin: "0.2rem 0", fontSize: "0.85rem" }}>
-                  마감일: {item.deadline?.slice(0, 10)}
+                <p
+                  style={{
+                    margin: '0.2rem 0 0',
+                    fontSize: '0.86rem',
+                    color: '#6b7280',
+                  }}
+                >
+                  마감일: {gb.deadline?.slice(0, 10)} / 위치:{' '}
+                  {gb.location || '위치 정보 없음'}
                 </p>
-
-                {item.price && (
-                  <p style={{ margin: 0, fontSize: "0.85rem" }}>
-                    가격: {item.price.toLocaleString()}원
-                  </p>
-                )}
-              </article>
-            </Link>
-          );
-        })}
-      </div>
+              </Link>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }

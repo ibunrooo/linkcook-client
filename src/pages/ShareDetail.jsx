@@ -1,34 +1,27 @@
 // src/pages/ShareDetail.jsx
-import { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import WhiteCard from "../components/common/WhiteCard"; // ✅ 추가
+import { useEffect, useState } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import apiClient from '../api/client';
+import WhiteCard from '../components/common/WhiteCard';
 
 const pageStyle = {
-  maxWidth: "960px",
-  margin: "0 auto",
-  padding: "2rem 1.5rem 4rem",
+  maxWidth: '960px',
+  margin: '0 auto',
+  padding: '2rem 1.5rem 4rem',
 };
-
-// const cardStyle = { ... }  // ✅ WhiteCard가 대신하므로 제거 가능
 
 function ShareDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [share, setShare] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [error, setError] = useState('');
 
   useEffect(() => {
     const fetchDetail = async () => {
       try {
-        const res = await fetch(`http://localhost:4000/api/share/${id}`);
-        const data = await res.json();
-
-        if (!res.ok || data.success === false) {
-          throw new Error(data.message || "나눔 정보를 불러오지 못했습니다.");
-        }
-
-        setShare(data.data);
+        const { data } = await apiClient.get(`/api/share/${id}`);
+        setShare(data);
       } catch (err) {
         console.error(err);
         setError(err.message);
@@ -44,7 +37,7 @@ function ShareDetail() {
   if (error) return <p style={pageStyle}>에러: {error}</p>;
   if (!share) return <p style={pageStyle}>나눔 정보를 찾을 수 없습니다.</p>;
 
-  const title = share.title || share.item || "나눔 상세";
+  const title = share.title || share.item || '나눔 상세';
   const quantityText = share.unit
     ? `${share.quantity}${share.unit}`
     : `${share.quantity}`;
@@ -53,12 +46,12 @@ function ShareDetail() {
   const now = new Date();
   const diffMs = expiryDate ? expiryDate.getTime() - now.getTime() : 0;
   const isExpired = expiryDate && diffMs <= 0;
-  const isClosed = isExpired || share.status === "closed";
+  const isClosed = isExpired || share.status === 'closed';
 
-  let leftText = "소비기한 정보 없음";
+  let leftText = '소비기한 정보 없음';
   if (expiryDate) {
     if (diffMs <= 0) {
-      leftText = "소비기한이 지났습니다";
+      leftText = '소비기한이 지났습니다';
     } else {
       const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
       const diffHours = Math.floor(
@@ -71,64 +64,63 @@ function ShareDetail() {
     }
   }
 
-  const ownerName = share.owner || share.author || "";
+  const ownerName = share.owner || share.author || '';
 
   return (
     <div style={pageStyle}>
       <button
         onClick={() => navigate(-1)}
         style={{
-          border: "none",
-          background: "none",
-          color: "#6b7280",
-          marginBottom: "1rem",
-          cursor: "pointer",
+          border: 'none',
+          background: 'none',
+          color: '#6b7280',
+          marginBottom: '1rem',
+          cursor: 'pointer',
         }}
       >
         ← 나눔 목록으로
       </button>
 
-      {/* ✅ WhiteCard로 감싸기 */}
       <WhiteCard>
         {share.image && (
           <div
             style={{
-              marginBottom: "1.25rem",
-              borderRadius: "14px",
-              overflow: "hidden",
+              marginBottom: '1.25rem',
+              borderRadius: '14px',
+              overflow: 'hidden',
             }}
           >
             <img
               src={share.image}
               alt={title}
-              style={{ width: "100%", display: "block", objectFit: "cover" }}
+              style={{ width: '100%', display: 'block', objectFit: 'cover' }}
             />
           </div>
         )}
 
         <h2
           style={{
-            fontSize: "1.8rem",
-            marginBottom: "0.4rem",
+            fontSize: '1.8rem',
+            marginBottom: '0.4rem',
             fontWeight: 700,
           }}
         >
           {title}
         </h2>
 
-        <p style={{ color: "#4b5563", marginBottom: "0.5rem" }}>
+        <p style={{ color: '#4b5563', marginBottom: '0.5rem' }}>
           나눔 품목: {share.item}
         </p>
 
         {share.description && (
           <p
             style={{
-              marginTop: "1rem",
-              marginBottom: "1.5rem",
-              padding: "1rem 1.25rem",
-              backgroundColor: "#f9fafb",
-              borderRadius: "12px",
-              color: "#374151",
+              marginTop: '1rem',
+              marginBottom: '1.5rem',
+              padding: '1rem 1.25rem',
+              backgroundColor: '#f9fafb',
+              borderRadius: '12px',
+              color: '#374151',
               lineHeight: 1.5,
             }}
           >
@@ -139,19 +131,19 @@ function ShareDetail() {
         {/* 정보 섹션 */}
         <div
           style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
-            gap: "1.5rem",
-            marginBottom: "2rem",
+            display: 'grid',
+            gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
+            gap: '1.5rem',
+            marginBottom: '2rem',
           }}
         >
           <div>
-            <div style={{ fontSize: "0.9rem", color: "#6b7280" }}>나눔 수량</div>
+            <div style={{ fontSize: '0.9rem', color: '#6b7280' }}>나눔 수량</div>
             <div
               style={{
-                fontSize: "1.3rem",
+                fontSize: '1.3rem',
                 fontWeight: 700,
-                marginTop: "0.3rem",
+                marginTop: '0.3rem',
               }}
             >
               {quantityText}
@@ -159,15 +151,15 @@ function ShareDetail() {
           </div>
 
           <div>
-            <div style={{ fontSize: "0.9rem", color: "#6b7280" }}>
+            <div style={{ fontSize: '0.9rem', color: '#6b7280' }}>
               소비기한 / 남은 시간
             </div>
             <div
               style={{
-                fontSize: "1.05rem",
+                fontSize: '1.05rem',
                 fontWeight: 600,
-                marginTop: "0.3rem",
-                color: isExpired ? "#ef4444" : "#111827",
+                marginTop: '0.3rem',
+                color: isExpired ? '#ef4444' : '#111827',
               }}
             >
               {expiryDate
@@ -177,33 +169,33 @@ function ShareDetail() {
           </div>
 
           <div>
-            <div style={{ fontSize: "0.9rem", color: "#6b7280" }}>상태</div>
+            <div style={{ fontSize: '0.9rem', color: '#6b7280' }}>상태</div>
             <div
               style={{
-                marginTop: "0.3rem",
-                display: "inline-block",
-                padding: "0.3rem 0.75rem",
-                borderRadius: "999px",
-                fontSize: "0.85rem",
+                marginTop: '0.3rem',
+                display: 'inline-block',
+                padding: '0.3rem 0.75rem',
+                borderRadius: '999px',
+                fontSize: '0.85rem',
                 fontWeight: 600,
-                backgroundColor: isClosed ? "#fee2e2" : "#dcfce7",
-                color: isClosed ? "#b91c1c" : "#166534",
+                backgroundColor: isClosed ? '#fee2e2' : '#dcfce7',
+                color: isClosed ? '#b91c1c' : '#166534',
               }}
             >
-              {isClosed ? "나눔 종료" : "나눔 진행 중"}
+              {isClosed ? '나눔 종료' : '나눔 진행 중'}
             </div>
           </div>
         </div>
 
-        {/* 위치 / 주최자 */}
+        {/* 위치 / 제공자 */}
         <div
           style={{
-            display: "flex",
-            flexDirection: "column",
-            gap: "0.5rem",
-            marginBottom: "0.5rem",
-            fontSize: "0.95rem",
-            color: "#4b5563",
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '0.5rem',
+            marginBottom: '0.5rem',
+            fontSize: '0.95rem',
+            color: '#4b5563',
           }}
         >
           {share.location && (

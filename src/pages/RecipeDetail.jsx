@@ -1,7 +1,7 @@
 // src/pages/RecipeDetail.jsx
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import WhiteCard from '../components/common/WhiteCard'; // ✅ 추가
+import WhiteCard from '../components/common/WhiteCard'; 
 
 const pageStyle = {
   maxWidth: '960px',
