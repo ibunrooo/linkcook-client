@@ -3,6 +3,12 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import apiClient from '../api/client';
 
+const pageStyle = {
+  maxWidth: '960px',
+  margin: '0 auto',
+  padding: '2rem 1.5rem 4rem',
+};
+
 function Recipes() {
   const [recipes, setRecipes] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -11,7 +17,7 @@ function Recipes() {
   useEffect(() => {
     const fetchRecipes = async () => {
       try {
-        const data = await apiClient.get('/api/recipes'); // ✅ 공통 클라이언트 사용
+        const data = await apiClient.get('/api/recipes');
         setRecipes(data.data || []);
       } catch (err) {
         console.error(err);
@@ -28,7 +34,7 @@ function Recipes() {
   if (error) return <p>에러: {error}</p>;
 
   return (
-    <div>
+    <div style={pageStyle}>
       <header style={{ marginBottom: '1.5rem' }}>
         <h2 style={{ marginBottom: '0.5rem' }}>레시피</h2>
         <p style={{ margin: 0, color: '#555' }}>
