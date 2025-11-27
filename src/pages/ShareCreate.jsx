@@ -1,6 +1,7 @@
 // src/pages/ShareCreate.jsx
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth0 } from '@auth0/auth0-react';
 import apiClient from '../api/client';
 import WhiteCard from '../components/common/WhiteCard';
 
@@ -12,6 +13,7 @@ const pageStyle = {
 
 function ShareCreate() {
   const navigate = useNavigate();
+  const { user } = useAuth0();
   const [form, setForm] = useState({
     item: '',
     quantity: '',
@@ -38,6 +40,8 @@ function ShareCreate() {
       const payload = {
         ...form,
         quantity: form.quantity ? Number(form.quantity) : undefined,
+        auth0Id: user?.sub,
+        nickname: user?.nickname || user?.name || 'anonymous',
       };
 
       await apiClient.post('/api/share', payload);

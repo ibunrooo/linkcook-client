@@ -1,6 +1,7 @@
 // src/pages/GroupBuyCreate.jsx
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth0 } from '@auth0/auth0-react';
 import apiClient from '../api/client';
 import WhiteCard from '../components/common/WhiteCard';
 
@@ -12,6 +13,7 @@ const pageStyle = {
 
 function GroupBuyCreate() {
   const navigate = useNavigate();
+  const { user } = useAuth0();
   const [form, setForm] = useState({
     title: '',
     item: '',
@@ -44,6 +46,8 @@ function GroupBuyCreate() {
         pricePerUnit: form.pricePerUnit
           ? Number(form.pricePerUnit)
           : undefined,
+        auth0Id: user?.sub,
+        nickname: user?.nickname || user?.name || 'anonymous',
       };
 
       await apiClient.post('/api/groupbuy', payload);

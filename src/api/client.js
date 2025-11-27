@@ -8,7 +8,26 @@ const API_BASE_URL =
  * - options: fetch 옵션 (method, headers, body 등)
  */
 async function request(path, options = {}) {
-  const url = path.startsWith('http') ? path : `${API_BASE_URL}${path}`;
+  const { params, ...restOptions } = options;
+
+  let url = path.startsWith('http') ? path : `${API_BASE_URL}${path}`;
+  if (params && typeof params === 'object') {
+    const query = new URLSearchParams();
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        query.append(key, value);
+      }
+    });
+    const qs = query.toString();
+    if (qs) {
+      url += url.includes('?') ? `&${qs}` : `?${qs}`;
+    }
+  }
+  // 개발 편의를 위한 디버그 로그
+  if (import.meta.env.DEV) {
+    // eslint-disable-next-line no-console
+    console.debug('[apiClient] request', url);
+  }
 
   const defaultHeaders = {
     'Content-Type': 'application/json',
@@ -19,7 +38,7 @@ async function request(path, options = {}) {
       ...defaultHeaders,
       ...(options.headers || {}),
     },
-    ...options,
+    ...restOptions,
   });
 
   let data = {};
@@ -38,24 +57,27 @@ async function request(path, options = {}) {
 }
 
 const apiClient = {
-  get(path) {
-    return request(path);
+  get(path, options) {
+    return request(path, options);
   },
-  post(path, body) {
+  post(path, body, options) {
     return request(path, {
       method: 'POST',
       body: JSON.stringify(body),
+      ...(options || {}),
     });
   },
-  put(path, body) {
+  put(path, body, options) {
     return request(path, {
       method: 'PUT',
       body: JSON.stringify(body),
+      ...(options || {}),
     });
   },
-  delete(path) {
+  delete(path, options) {
     return request(path, {
       method: 'DELETE',
+      ...(options || {}),
     });
   },
 };

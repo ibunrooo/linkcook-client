@@ -1,10 +1,12 @@
 // src/pages/RecipeCreate.jsx
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth0 } from '@auth0/auth0-react';
 import apiClient from '../api/client';
 
 function RecipeCreate() {
   const navigate = useNavigate();
+  const { user } = useAuth0();
 
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -41,6 +43,8 @@ function RecipeCreate() {
         ingredients,
         steps,
         author: author || 'anonymous',
+        auth0Id: user?.sub,
+        nickname: user?.nickname || user?.name || 'anonymous',
       };
 
       const data = await apiClient.post('/api/recipes', body);

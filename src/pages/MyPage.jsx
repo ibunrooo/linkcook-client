@@ -1,6 +1,8 @@
 // src/pages/MyPage.jsx
 import { useEffect, useState } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
+import { useNavigate } from 'react-router-dom';
+import apiClient from '../api/client';
 
 const pageStyle = {
   maxWidth: '960px',
@@ -17,12 +19,17 @@ const cardStyle = {
 
 function MyPage() {
   const { isAuthenticated, user, isLoading } = useAuth0();
+  const navigate = useNavigate();
 
   const [profile, setProfile] = useState(null); // 우리 서버 User
   const [nicknameInput, setNicknameInput] = useState('');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
+  const [tab, setTab] = useState('bookmarks'); // 'likes' | 'posts'
+  const [myBookmarks, setMyBookmarks] = useState(null);
+  const [myLikes, setMyLikes] = useState(null);
+  const [myPosts, setMyPosts] = useState(null);
 
   // 🔹 Auth0 → 우리 서버 User 동기화 (항상 훅들은 위에!)
   useEffect(() => {
@@ -61,6 +68,31 @@ function MyPage() {
     };
 
     syncUser();
+  }, [isAuthenticated, user]);
+
+  // 🔹 내 북마크/좋아요/작성글 불러오기
+  useEffect(() => {
+    const fetchMyData = async () => {
+      if (!isAuthenticated || !user?.sub) return;
+      try {
+        const auth0Id = user.sub;
+        const [bookmarksRes, likesRes, postsRes] = await Promise.all([
+          apiClient.get(`/api/me/bookmarks?auth0Id=${encodeURIComponent(auth0Id)}`),
+          apiClient.get(`/api/me/likes?auth0Id=${encodeURIComponent(auth0Id)}`),
+          apiClient.get(`/api/me/posts?auth0Id=${encodeURIComponent(auth0Id)}`),
+        ]);
+        setMyBookmarks(bookmarksRes.data || null);
+        setMyLikes(likesRes.data || null);
+        setMyPosts(postsRes.data || null);
+      } catch (err) {
+        console.error(err);
+        setMyBookmarks({ recipes: [], shares: [], groupbuys: [] });
+        setMyLikes({ recipes: [], shares: [], groupbuys: [] });
+        setMyPosts({ recipes: [], shares: [], groupbuys: [] });
+      }
+    };
+
+    fetchMyData();
   }, [isAuthenticated, user]);
 
   // 🔹 로딩 상태 우선 처리
@@ -198,6 +230,129 @@ function MyPage() {
           비밀번호 변경은 Auth0 계정 관리 페이지에서 진행할 수 있습니다.
         </p>
       </div>
+
+      {/* 탭 영역 */}
+      <div style={{ marginTop: '1.5rem' }}>
+        <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1rem' }}>
+          {[
+            { key: 'bookmarks', label: '내가 북마크한 글' },
+            { key: 'likes', label: '내가 좋아요한 글' },
+            { key: 'posts', label: '내가 작성한 글' },
+          ].map((t) => (
+            <button
+              key={t.key}
+              type="button"
+              onClick={() => setTab(t.key)}
+              style={{
+                padding: '0.6rem 1.2rem',
+                borderRadius: '999px',
+                border: '1px solid #d1d5db',
+                background:
+                  tab === t.key
+                    ? 'linear-gradient(90deg, #bbf7d0 0%, #fde68a 50%, #fed7aa 100%)'
+                    : '#fff',
+                color: '#1f2937',
+                fontWeight: 600,
+                cursor: 'pointer',
+              }}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
+
+        {/* 리스트 영역 */}
+        <div style={cardStyle}>
+          {tab === 'bookmarks' && (
+            <ListSection
+              title="내가 북마크한 글"
+              data={myBookmarks}
+              navigate={navigate}
+            />
+          )}
+          {tab === 'likes' && (
+            <ListSection
+              title="내가 좋아요한 글"
+              data={myLikes}
+              navigate={navigate}
+            />
+          )}
+          {tab === 'posts' && (
+            <ListSection
+              title="내가 작성한 글"
+              data={myPosts}
+              navigate={navigate}
+            />
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ListSection({ title, data, navigate }) {
+  if (!data) {
+    return <p style={{ color: '#6b7280' }}>불러오는 중...</p>;
+  }
+
+  const renderList = (items, type) => {
+    if (!items || items.length === 0) {
+      return (
+        <p style={{ color: '#9ca3af', marginBottom: '0.4rem' }}>
+          {title} - {type} 없음
+        </p>
+      );
+    }
+    return (
+      <div style={{ display: 'grid', gap: '0.6rem', marginBottom: '1rem' }}>
+        {items.map((item) => (
+          <div
+            key={item._id}
+            onClick={() => {
+              if (type === 'recipe') navigate(`/recipes/${item._id}`);
+              if (type === 'share') navigate(`/share/${item._id}`);
+              if (type === 'groupbuy') navigate(`/groupbuy/${item._id}`);
+            }}
+            style={{
+              padding: '0.9rem 1rem',
+              borderRadius: '12px',
+              border: '1px solid #e5e7eb',
+              cursor: 'pointer',
+              transition: 'transform 0.1s ease, box-shadow 0.1s ease',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.boxShadow =
+                '0 10px 20px rgba(0,0,0,0.05)';
+              e.currentTarget.style.transform = 'translateY(-2px)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.boxShadow = 'none';
+              e.currentTarget.style.transform = 'none';
+            }}
+          >
+            <div style={{ fontWeight: 700, marginBottom: '0.3rem' }}>
+              {item.title || item.item || '제목 없음'}
+            </div>
+            <div style={{ color: '#6b7280', fontSize: '0.9rem' }}>
+              {item.description ||
+                item.location ||
+                item.status ||
+                item.owner ||
+                item.author ||
+                ''}
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  };
+
+  return (
+    <div>
+      <h3 style={{ marginTop: 0, marginBottom: '1rem' }}>{title}</h3>
+      {renderList(data.recipes, 'recipe')}
+      {renderList(data.shares, 'share')}
+      {renderList(data.groupbuys, 'groupbuy')}
     </div>
   );
 }
