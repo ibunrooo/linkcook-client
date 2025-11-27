@@ -1,6 +1,7 @@
 // src/pages/GroupBuyDetail.jsx
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useAuth0 } from '@auth0/auth0-react';
 import apiClient from '../api/client';
 import WhiteCard from '../components/common/WhiteCard';
 
@@ -29,17 +30,31 @@ const progressBarInnerBase = {
 function GroupBuyDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth0();
+
   const [groupBuy, setGroupBuy] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [isJoining, setIsJoining] = useState(false);
   const [successMsg, setSuccessMsg] = useState('');
 
+  // 🔹 북마크 상태
+  const [bookmarked, setBookmarked] = useState(false);
+  const [bookmarkCount, setBookmarkCount] = useState(0);
+
   useEffect(() => {
     const fetchDetail = async () => {
       try {
         const { data } = await apiClient.get(`/api/groupbuy/${id}`);
         setGroupBuy(data);
+
+        const bookmarks = Array.isArray(data.bookmarks) ? data.bookmarks : [];
+        setBookmarkCount(bookmarks.length);
+        if (user && user.sub) {
+          setBookmarked(bookmarks.includes(user.sub));
+        } else {
+          setBookmarked(false);
+        }
       } catch (err) {
         console.error(err);
         setError(err.message);
@@ -49,7 +64,7 @@ function GroupBuyDetail() {
     };
 
     fetchDetail();
-  }, [id]);
+  }, [id, user]);
 
   const handleJoin = async () => {
     if (!groupBuy) return;
@@ -69,6 +84,28 @@ function GroupBuyDetail() {
       setError(err.message);
     } finally {
       setIsJoining(false);
+    }
+  };
+
+  const handleBookmarkClick = async () => {
+    if (!user) {
+      alert('로그인 후 이용할 수 있습니다.');
+      return;
+    }
+
+    try {
+      const { data } = await apiClient.post(`/api/groupbuy/${id}/bookmark`, {
+        auth0Id: user.sub,
+      });
+
+      setBookmarked(Boolean(data.bookmarked));
+      setBookmarkCount(typeof data.bookmarkCount === 'number' ? data.bookmarkCount : 0);
+    } catch (err) {
+      console.error(err);
+      alert(
+        err.response?.data?.message ||
+          '북마크 처리 중 오류가 발생했습니다.'
+      );
     }
   };
 
@@ -96,7 +133,7 @@ function GroupBuyDetail() {
     const diffMinutes = Math.floor(
       (diffMs % (1000 * 60 * 60)) / (1000 * 60)
     );
-    leftText = `${diffDays}일 ${diffHours}시간 ${diffMinutes}분 남음`;
+      leftText = `${diffDays}일 ${diffHours}시간 ${diffMinutes}분 남음`;
   }
 
   const perPersonPrice = Number(groupBuy.pricePerUnit) || 0;
@@ -126,6 +163,30 @@ function GroupBuyDetail() {
         >
           {groupBuy.title}
         </h2>
+
+        {/* 🔹 북마크 버튼 */}
+        <button
+          type="button"
+          onClick={handleBookmarkClick}
+          style={{
+            border: 'none',
+            background: 'none',
+            padding: 0,
+            marginBottom: '0.8rem',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '0.35rem',
+            cursor: 'pointer',
+            color: bookmarked ? '#fbbf24' : '#9ca3af',
+            fontSize: '0.95rem',
+          }}
+        >
+          <span style={{ fontSize: '1.1rem' }}>
+            {bookmarked ? '★' : '☆'}
+          </span>
+          <span>북마크 {bookmarkCount}</span>
+        </button>
+
         <p style={{ color: '#4b5563', marginBottom: '0.5rem' }}>
           {groupBuy.item}
         </p>

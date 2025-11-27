@@ -1,7 +1,9 @@
 // src/pages/RecipeDetail.jsx
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import WhiteCard from '../components/common/WhiteCard'; 
+import { useAuth0 } from '@auth0/auth0-react';
+import apiClient from '../api/client';
+import WhiteCard from '../components/common/WhiteCard';
 
 const pageStyle = {
   maxWidth: '960px',
@@ -9,27 +11,33 @@ const pageStyle = {
   padding: '2rem 1.5rem 4rem',
 };
 
-// cardStyle는 WhiteCard로 대체하므로 더 이상 필요 없음 (지워도 됨)
-// const cardStyle = { ... };
-
 function RecipeDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { isAuthenticated, user } = useAuth0();
+
   const [recipe, setRecipe] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+
+  // 👍 좋아요 관련 상태
+  const [likeCount, setLikeCount] = useState(0);
+  const [liked, setLiked] = useState(false);
 
   useEffect(() => {
     const fetchRecipe = async () => {
       try {
         const res = await fetch(`http://localhost:4000/api/recipes/${id}`);
-      const data = await res.json();
+        const data = await res.json();
 
         if (!res.ok || data.success === false) {
           throw new Error(data.message || '레시피 정보를 불러오지 못했습니다.');
         }
 
         setRecipe(data.data);
+        setLikeCount(data.data.likesCount || 0); // 서버에서 오는 좋아요 수
+        // 🔸 현재는 유저별 liked 여부 정보가 없어서 기본값은 false 로 두고,
+        //    버튼을 한 번 누르면 서버 응답 기준으로 liked 상태가 바뀌도록 처리.
       } catch (err) {
         console.error(err);
         setError(err.message);
@@ -40,6 +48,27 @@ function RecipeDetail() {
 
     fetchRecipe();
   }, [id]);
+
+  // 좋아요 토글 버튼 클릭
+  const handleLikeClick = async () => {
+    if (!isAuthenticated || !user || !recipe) return;
+
+    try {
+      const res = await apiClient.post(`/api/recipes/${recipe._id}/like`, {
+        auth0Id: user.sub,
+      });
+
+      if (res.success === false) {
+        throw new Error(res.message || '좋아요 처리에 실패했습니다.');
+      }
+
+      setLikeCount(res.data.likesCount);
+      setLiked(res.data.liked);
+    } catch (err) {
+      console.error(err);
+      alert(err.message || '좋아요 처리 중 오류가 발생했습니다.');
+    }
+  };
 
   if (loading) return <p style={pageStyle}>레시피 정보를 불러오는 중입니다...</p>;
   if (error) return <p style={pageStyle}>에러: {error}</p>;
@@ -63,7 +92,6 @@ function RecipeDetail() {
         ← 레시피 목록으로
       </button>
 
-      {/* ✅ 공통 카드 컴포넌트로 교체 */}
       <WhiteCard>
         {/* 제목 & 한 줄 소개 */}
         <h2
@@ -75,6 +103,39 @@ function RecipeDetail() {
         >
           {recipe.title}
         </h2>
+
+        {/* 👍 좋아요 버튼 */}
+        <div style={{ marginBottom: '1rem' }}>
+          <button
+            type="button"
+            onClick={handleLikeClick}
+            disabled={!isAuthenticated}
+            style={{
+              border: 'none',
+              borderRadius: '999px',
+              padding: '0.35rem 0.9rem',
+              fontSize: '0.9rem',
+              cursor: isAuthenticated ? 'pointer' : 'not-allowed',
+              backgroundColor: liked ? '#fee2e2' : '#f3f4f6',
+              color: liked ? '#b91c1c' : '#374151',
+            }}
+          >
+            {liked ? '❤️ 좋아요' : '🤍 좋아요'}
+            <span style={{ marginLeft: '0.4rem' }}>{likeCount}</span>
+          </button>
+          {!isAuthenticated && (
+            <span
+              style={{
+                marginLeft: '0.5rem',
+                fontSize: '0.8rem',
+                color: '#9ca3af',
+              }}
+            >
+              (로그인 후 이용 가능)
+            </span>
+          )}
+        </div>
+
         {recipe.description && (
           <p
             style={{

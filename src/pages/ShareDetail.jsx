@@ -1,6 +1,7 @@
 // src/pages/ShareDetail.jsx
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useAuth0 } from '@auth0/auth0-react';
 import apiClient from '../api/client';
 import WhiteCard from '../components/common/WhiteCard';
 
@@ -13,15 +14,30 @@ const pageStyle = {
 function ShareDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth0();
+
   const [share, setShare] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+
+  // 🔹 북마크 상태
+  const [bookmarked, setBookmarked] = useState(false);
+  const [bookmarkCount, setBookmarkCount] = useState(0);
 
   useEffect(() => {
     const fetchDetail = async () => {
       try {
         const { data } = await apiClient.get(`/api/share/${id}`);
         setShare(data);
+
+        // 북마크 초기값 세팅 (백엔드에서 bookmarks: [auth0Id] 배열이라고 가정)
+        const bookmarks = Array.isArray(data.bookmarks) ? data.bookmarks : [];
+        setBookmarkCount(bookmarks.length);
+        if (user && user.sub) {
+          setBookmarked(bookmarks.includes(user.sub));
+        } else {
+          setBookmarked(false);
+        }
       } catch (err) {
         console.error(err);
         setError(err.message);
@@ -31,7 +47,31 @@ function ShareDetail() {
     };
 
     fetchDetail();
-  }, [id]);
+    // user가 나중에 로딩될 수도 있어서 user도 dependency에 포함
+  }, [id, user]);
+
+  const handleBookmarkClick = async () => {
+    if (!user) {
+      alert('로그인 후 이용할 수 있습니다.');
+      return;
+    }
+
+    try {
+      const { data } = await apiClient.post(`/api/share/${id}/bookmark`, {
+        auth0Id: user.sub,
+      });
+
+      // 응답이 { bookmarked, bookmarkCount } 라고 가정
+      setBookmarked(Boolean(data.bookmarked));
+      setBookmarkCount(typeof data.bookmarkCount === 'number' ? data.bookmarkCount : 0);
+    } catch (err) {
+      console.error(err);
+      alert(
+        err.response?.data?.message ||
+          '북마크 처리 중 오류가 발생했습니다.'
+      );
+    }
+  };
 
   if (loading) return <p style={pageStyle}>나눔 정보를 불러오는 중입니다...</p>;
   if (error) return <p style={pageStyle}>에러: {error}</p>;
@@ -107,6 +147,29 @@ function ShareDetail() {
         >
           {title}
         </h2>
+
+        {/* 🔹 북마크 버튼 */}
+        <button
+          type="button"
+          onClick={handleBookmarkClick}
+          style={{
+            border: 'none',
+            background: 'none',
+            padding: 0,
+            marginBottom: '0.8rem',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '0.35rem',
+            cursor: 'pointer',
+            color: bookmarked ? '#fbbf24' : '#9ca3af',
+            fontSize: '0.95rem',
+          }}
+        >
+          <span style={{ fontSize: '1.1rem' }}>
+            {bookmarked ? '★' : '☆'}
+          </span>
+          <span>북마크 {bookmarkCount}</span>
+        </button>
 
         <p style={{ color: '#4b5563', marginBottom: '0.5rem' }}>
           나눔 품목: {share.item}
