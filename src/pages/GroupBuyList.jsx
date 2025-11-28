@@ -63,7 +63,13 @@ function GroupBuyList() {
           setLoading(true);
           setSearchQuery(searchInput.trim());
         }}
-        style={{ marginBottom: '1rem' }}
+        style={{
+          marginBottom: '1rem',
+          display: 'flex',
+          gap: '0.35rem',
+          alignItems: 'center',
+          maxWidth: '420px',
+        }}
       >
         <input
           type="text"
@@ -78,14 +84,27 @@ function GroupBuyList() {
           }}
           placeholder="제목, 품목, 설명, 위치, 작성자로 검색해보세요"
           style={{
-            width: '100%',
-            maxWidth: '420px',
-            padding: '0.65rem 0.85rem',
+            flex: 1,
+            padding: '0.6rem 0.8rem',
             borderRadius: '10px',
             border: '1px solid #d1d5db',
             fontSize: '0.95rem',
           }}
         />
+        <button
+          type="submit"
+          aria-label="검색"
+          style={{
+            padding: '0.6rem 0.8rem',
+            borderRadius: '10px',
+            border: '1px solid #d1d5db',
+            background: '#fff',
+            cursor: 'pointer',
+            fontSize: '1rem',
+          }}
+        >
+          🔍
+        </button>
       </form>
 
       <div
