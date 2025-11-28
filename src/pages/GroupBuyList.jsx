@@ -155,39 +155,73 @@ function GroupBuyList() {
                 to={`/groupbuy/${gb._id}`}
                 style={cardStyle}
               >
-                <h3 style={{ margin: 0 }}>{gb.title}</h3>
-                <p
+                <div
                   style={{
-                    margin: '0.25rem 0 0.4rem',
-                    color: '#4b5563',
-                    fontSize: '0.9rem',
+                    display: 'flex',
+                    gap: '0.85rem',
+                    alignItems: 'center',
                   }}
                 >
-                  {gb.item}
-                </p>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <h3 style={{ margin: 0 }}>{gb.title}</h3>
+                    <p
+                      style={{
+                        margin: '0.25rem 0 0.4rem',
+                        color: '#4b5563',
+                        fontSize: '0.9rem',
+                      }}
+                    >
+                      {gb.item}
+                    </p>
 
-                <p
-                  style={{
-                    margin: 0,
-                    fontSize: '0.86rem',
-                    color: isClosed ? '#b91c1c' : '#374151',
-                  }}
-                >
-                  {isClosed
-                    ? '📌 종료된 공동구매'
-                    : `참여 ${participantCount} / ${totalUnits} · 진행률 ${percent}%`}
-                </p>
+                    <p
+                      style={{
+                        margin: 0,
+                        fontSize: '0.86rem',
+                        color: isClosed ? '#b91c1c' : '#374151',
+                      }}
+                    >
+                      {isClosed
+                        ? '📌 종료된 공동구매'
+                        : `참여 ${participantCount} / ${totalUnits} · 진행률 ${percent}%`}
+                    </p>
 
-                <p
-                  style={{
-                    margin: '0.2rem 0 0',
-                    fontSize: '0.86rem',
-                    color: '#6b7280',
-                  }}
-                >
-                  마감일: {gb.deadline?.slice(0, 10)} / 위치:{' '}
-                  {gb.location || '위치 정보 없음'}
-                </p>
+                    <p
+                      style={{
+                        margin: '0.2rem 0 0',
+                        fontSize: '0.86rem',
+                        color: '#6b7280',
+                      }}
+                    >
+                      마감일: {gb.deadline?.slice(0, 10)} / 위치:{' '}
+                      {gb.location || '위치 정보 없음'}
+                    </p>
+                  </div>
+
+                  {gb.image && (
+                    <div
+                      style={{
+                        width: '120px',
+                        height: '90px',
+                        borderRadius: '10px',
+                        overflow: 'hidden',
+                        border: '1px solid #e5e7eb',
+                        flexShrink: 0,
+                      }}
+                    >
+                      <img
+                        src={gb.image}
+                        alt={gb.title || '공동구매 이미지'}
+                        style={{
+                          width: '100%',
+                          height: '100%',
+                          objectFit: 'cover',
+                          display: 'block',
+                        }}
+                      />
+                    </div>
+                  )}
+                </div>
               </Link>
             );
           })}

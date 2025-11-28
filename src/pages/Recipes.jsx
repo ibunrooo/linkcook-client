@@ -55,9 +55,9 @@ function Recipes() {
         style={{
           marginBottom: '1rem',
           display: 'flex',
-          gap: '0.35rem',
+          gap: '0.6rem',
           alignItems: 'center',
-          maxWidth: '420px',
+          maxWidth: '520px',
         }}
       >
         <input
@@ -74,7 +74,7 @@ function Recipes() {
           placeholder="레시피 제목, 재료로 검색해보세요"
           style={{
             flex: 1,
-            padding: '0.6rem 0.8rem',
+            padding: '0.65rem 0.85rem',
             borderRadius: '10px',
             border: '1px solid #d1d5db',
             fontSize: '0.95rem',
@@ -84,7 +84,7 @@ function Recipes() {
           type="submit"
           aria-label="검색"
           style={{
-            padding: '0.6rem 0.8rem',
+            padding: '0.68rem 0.95rem',
             borderRadius: '10px',
             border: '1px solid #d1d5db',
             background: '#fff',
@@ -144,8 +144,33 @@ function Recipes() {
                 border: '1px solid #eee',
                 boxShadow: '0 3px 10px rgba(0,0,0,0.06)',
                 cursor: 'pointer',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '0.7rem',
               }}
             >
+              {recipe.image && (
+                <div
+                  style={{
+                    width: '100%',
+                    height: '170px',
+                    borderRadius: '12px',
+                    overflow: 'hidden',
+                    border: '1px solid #e5e7eb',
+                  }}
+                >
+                  <img
+                    src={recipe.image}
+                    alt={recipe.title || '레시피 이미지'}
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      objectFit: 'cover',
+                      display: 'block',
+                    }}
+                  />
+                </div>
+              )}
               <h3 style={{ margin: 0 }}>{recipe.title}</h3>
               {recipe.description && (
                 <p style={{ margin: '0.4rem 0', color: '#555', fontSize: '0.9rem' }}>

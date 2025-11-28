@@ -8,7 +8,7 @@ const API_BASE_URL =
  * - options: fetch 옵션 (method, headers, body 등)
  */
 async function request(path, options = {}) {
-  const { params, ...restOptions } = options;
+  const { params, body, headers, ...restOptions } = options;
 
   let url = path.startsWith('http') ? path : `${API_BASE_URL}${path}`;
   if (params && typeof params === 'object') {
@@ -29,15 +29,20 @@ async function request(path, options = {}) {
     console.debug('[apiClient] request', url);
   }
 
-  const defaultHeaders = {
-    'Content-Type': 'application/json',
-  };
+  const isFormData = body instanceof FormData;
+
+  const defaultHeaders = isFormData
+    ? {}
+    : {
+        'Content-Type': 'application/json',
+      };
 
   const res = await fetch(url, {
     headers: {
       ...defaultHeaders,
-      ...(options.headers || {}),
+      ...(headers || {}),
     },
+    body: isFormData ? body : body ? JSON.stringify(body) : undefined,
     ...restOptions,
   });
 
@@ -61,18 +66,10 @@ const apiClient = {
     return request(path, options);
   },
   post(path, body, options) {
-    return request(path, {
-      method: 'POST',
-      body: JSON.stringify(body),
-      ...(options || {}),
-    });
+    return request(path, { method: 'POST', body, ...(options || {}) });
   },
   put(path, body, options) {
-    return request(path, {
-      method: 'PUT',
-      body: JSON.stringify(body),
-      ...(options || {}),
-    });
+    return request(path, { method: 'PUT', body, ...(options || {}) });
   },
   delete(path, options) {
     return request(path, {

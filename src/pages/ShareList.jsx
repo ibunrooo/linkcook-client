@@ -156,34 +156,68 @@ function ShareList() {
                 to={`/share/${share._id}`}
                 style={cardStyle}
               >
-                <div style={{ marginBottom: '0.25rem' }}>
-                  <strong>{share.item}</strong>
-                  {share.quantity && (
-                    <span style={{ marginLeft: '0.25rem', color: '#6b7280', fontSize: '0.9rem' }}>
-                      · 나눔 수량 {share.quantity}
-                      {share.unit || ''}
-                    </span>
+                <div
+                  style={{
+                    display: 'flex',
+                    gap: '0.75rem',
+                    alignItems: 'center',
+                  }}
+                >
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ marginBottom: '0.25rem' }}>
+                      <strong>{share.item}</strong>
+                      {share.quantity && (
+                        <span style={{ marginLeft: '0.25rem', color: '#6b7280', fontSize: '0.9rem' }}>
+                          · 나눔 수량 {share.quantity}
+                          {share.unit || ''}
+                        </span>
+                      )}
+                    </div>
+
+                    <p
+                      style={{
+                        margin: 0,
+                        fontSize: '0.88rem',
+                        color: '#4b5563',
+                      }}
+                    >
+                      위치: {share.location || '위치 정보 없음'}
+                    </p>
+                    <p
+                      style={{
+                        margin: '0.15rem 0 0',
+                        fontSize: '0.86rem',
+                        color: '#6b7280',
+                      }}
+                    >
+                      소비기한: {expiryText}
+                    </p>
+                  </div>
+
+                  {share.image && (
+                    <div
+                      style={{
+                        width: '110px',
+                        height: '80px',
+                        borderRadius: '10px',
+                        overflow: 'hidden',
+                        border: '1px solid #e5e7eb',
+                        flexShrink: 0,
+                      }}
+                    >
+                      <img
+                        src={share.image}
+                        alt={share.item || '나눔 이미지'}
+                        style={{
+                          width: '100%',
+                          height: '100%',
+                          objectFit: 'cover',
+                          display: 'block',
+                        }}
+                      />
+                    </div>
                   )}
                 </div>
-
-                <p
-                  style={{
-                    margin: 0,
-                    fontSize: '0.88rem',
-                    color: '#4b5563',
-                  }}
-                >
-                  위치: {share.location || '위치 정보 없음'}
-                </p>
-                <p
-                  style={{
-                    margin: '0.15rem 0 0',
-                    fontSize: '0.86rem',
-                    color: '#6b7280',
-                  }}
-                >
-                  소비기한: {expiryText}
-                </p>
               </Link>
             );
           })}

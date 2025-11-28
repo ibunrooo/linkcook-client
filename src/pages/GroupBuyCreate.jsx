@@ -24,12 +24,36 @@ function GroupBuyCreate() {
     location: '',
     image: '',
   });
+  const [imageFile, setImageFile] = useState(null);
+  const [imageUrl, setImageUrl] = useState('');
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState('');
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleImageChange = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadError('');
+    setUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append('image', file);
+      const res = await apiClient.post('/api/uploads', formData);
+      const url = res.url || res.data?.url || '';
+      setImageFile(file);
+      setImageUrl(url);
+    } catch (err) {
+      console.error(err);
+      setUploadError(err.message);
+    } finally {
+      setUploading(false);
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -46,6 +70,7 @@ function GroupBuyCreate() {
         pricePerUnit: form.pricePerUnit
           ? Number(form.pricePerUnit)
           : undefined,
+        image: imageUrl || form.image || '',
         auth0Id: user?.sub,
         nickname: user?.nickname || user?.name || 'anonymous',
       };
@@ -224,8 +249,40 @@ function GroupBuyCreate() {
                 padding: '0.6rem 0.75rem',
                 borderRadius: '8px',
                 border: '1px solid #d1d5db',
-              }}
+          }}
+        />
+      </div>
+
+          {/* 이미지 업로드 */}
+          <div style={{ marginBottom: '1rem' }}>
+            <label style={{ display: 'block', marginBottom: '0.4rem', fontWeight: 600 }}>
+              썸네일 이미지 (선택)
+            </label>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleImageChange}
+              style={{ marginBottom: '0.5rem' }}
             />
+            {uploading && <p style={{ fontSize: '0.85rem' }}>이미지 업로드 중...</p>}
+            {uploadError && (
+              <p style={{ fontSize: '0.85rem', color: '#ef4444' }}>에러: {uploadError}</p>
+            )}
+            {imageUrl && (
+              <div style={{ marginTop: '0.5rem' }}>
+                <img
+                  src={imageUrl}
+                  alt="업로드 미리보기"
+                  style={{
+                    width: '200px',
+                    height: 'auto',
+                    borderRadius: '12px',
+                    objectFit: 'cover',
+                    border: '1px solid #e5e7eb',
+                  }}
+                />
+              </div>
+            )}
           </div>
 
           {/* 이미지 */}

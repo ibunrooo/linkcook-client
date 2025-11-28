@@ -93,6 +93,22 @@ function RecipeDetail() {
       </button>
 
       <WhiteCard>
+        {recipe.image && (
+          <div style={{ marginBottom: '1rem' }}>
+            <img
+              src={recipe.image}
+              alt={recipe.title || '레시피 이미지'}
+              style={{
+                width: '100%',
+                maxHeight: '360px',
+                objectFit: 'cover',
+                borderRadius: '14px',
+                border: '1px solid #e5e7eb',
+              }}
+            />
+          </div>
+        )}
+
         {/* 제목 & 한 줄 소개 */}
         <h2
           style={{
