@@ -30,11 +30,15 @@ function ShareList() {
   const [shares, setShares] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [searchInput, setSearchInput] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     const fetchShares = async () => {
       try {
-        const { data } = await apiClient.get('/api/share');
+        const { data } = await apiClient.get('/api/share', {
+          params: { q: searchQuery || undefined },
+        });
         setShares(data || []);
       } catch (err) {
         console.error(err);
@@ -45,7 +49,7 @@ function ShareList() {
     };
 
     fetchShares();
-  }, []);
+  }, [searchQuery]);
 
   if (loading) return <p style={pageStyle}>나눔 목록을 불러오는 중입니다...</p>;
   if (error) return <p style={pageStyle}>에러: {error}</p>;
@@ -58,6 +62,37 @@ function ShareList() {
           아직 쓸 수 있는 재료를 버리는 대신, 근처 이웃에게 나눠주세요.
         </p>
       </header>
+
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          setLoading(true);
+          setSearchQuery(searchInput.trim());
+        }}
+        style={{ marginBottom: '1rem' }}
+      >
+        <input
+          type="text"
+          value={searchInput}
+          onChange={(e) => {
+            const value = e.target.value;
+            setSearchInput(value);
+            if (value.trim() === '') {
+              setLoading(true);
+              setSearchQuery('');
+            }
+          }}
+          placeholder="나눔 품목, 설명, 위치, 작성자로 검색해보세요"
+          style={{
+            width: '100%',
+            maxWidth: '420px',
+            padding: '0.65rem 0.85rem',
+            borderRadius: '10px',
+            border: '1px solid #d1d5db',
+            fontSize: '0.95rem',
+          }}
+        />
+      </form>
 
       <div
         style={{

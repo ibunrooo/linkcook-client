@@ -24,11 +24,15 @@ function GroupBuyList() {
   const [groupBuys, setGroupBuys] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [searchInput, setSearchInput] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     const fetchGroupBuys = async () => {
       try {
-        const { data } = await apiClient.get('/api/groupbuy');
+        const { data } = await apiClient.get('/api/groupbuy', {
+          params: { q: searchQuery || undefined },
+        });
         setGroupBuys(data || []);
       } catch (err) {
         console.error(err);
@@ -39,7 +43,7 @@ function GroupBuyList() {
     };
 
     fetchGroupBuys();
-  }, []);
+  }, [searchQuery]);
 
   if (loading) return <p style={pageStyle}>공동구매 목록을 불러오는 중입니다...</p>;
   if (error) return <p style={pageStyle}>에러: {error}</p>;
@@ -52,6 +56,37 @@ function GroupBuyList() {
           이웃과 함께 저렴하게 장을 보고, 식재료를 나눠보세요.
         </p>
       </header>
+
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          setLoading(true);
+          setSearchQuery(searchInput.trim());
+        }}
+        style={{ marginBottom: '1rem' }}
+      >
+        <input
+          type="text"
+          value={searchInput}
+          onChange={(e) => {
+            const value = e.target.value;
+            setSearchInput(value);
+            if (value.trim() === '') {
+              setLoading(true);
+              setSearchQuery('');
+            }
+          }}
+          placeholder="제목, 품목, 설명, 위치, 작성자로 검색해보세요"
+          style={{
+            width: '100%',
+            maxWidth: '420px',
+            padding: '0.65rem 0.85rem',
+            borderRadius: '10px',
+            border: '1px solid #d1d5db',
+            fontSize: '0.95rem',
+          }}
+        />
+      </form>
 
       <div
         style={{

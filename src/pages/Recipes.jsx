@@ -13,11 +13,15 @@ function Recipes() {
   const [recipes, setRecipes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [searchInput, setSearchInput] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     const fetchRecipes = async () => {
       try {
-        const data = await apiClient.get('/api/recipes');
+        const data = await apiClient.get('/api/recipes', {
+          params: { q: searchQuery || undefined },
+        });
         setRecipes(data.data || []);
       } catch (err) {
         console.error(err);
@@ -28,7 +32,7 @@ function Recipes() {
     };
 
     fetchRecipes();
-  }, []);
+  }, [searchQuery]);
 
   if (loading) return <p>레시피 목록을 불러오는 중입니다...</p>;
   if (error) return <p>에러: {error}</p>;
@@ -41,6 +45,37 @@ function Recipes() {
           나만의 레시피를 공유하고, 다른 사람의 레시피를 탐색해보세요.
         </p>
       </header>
+
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          setLoading(true);
+          setSearchQuery(searchInput.trim());
+        }}
+        style={{ marginBottom: '1rem' }}
+      >
+        <input
+          type="text"
+          value={searchInput}
+          onChange={(e) => {
+            const value = e.target.value;
+            setSearchInput(value);
+            if (value.trim() === '') {
+              setLoading(true);
+              setSearchQuery('');
+            }
+          }}
+          placeholder="레시피 제목, 재료로 검색해보세요"
+          style={{
+            width: '100%',
+            maxWidth: '420px',
+            padding: '0.65rem 0.85rem',
+            borderRadius: '10px',
+            border: '1px solid #d1d5db',
+            fontSize: '0.95rem',
+          }}
+        />
+      </form>
 
       <div
         style={{
