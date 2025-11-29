@@ -8,7 +8,8 @@ const API_BASE_URL =
  * - options: fetch 옵션 (method, headers, body 등)
  */
 async function request(path, options = {}) {
-  const { params, body, headers, ...restOptions } = options;
+  const { params, body, data: dataOption, headers, ...restOptions } = options;
+  const finalBody = body !== undefined ? body : dataOption;
 
   let url = path.startsWith('http') ? path : `${API_BASE_URL}${path}`;
   if (params && typeof params === 'object') {
@@ -29,7 +30,7 @@ async function request(path, options = {}) {
     console.debug('[apiClient] request', url);
   }
 
-  const isFormData = body instanceof FormData;
+  const isFormData = finalBody instanceof FormData;
 
   const defaultHeaders = isFormData
     ? {}
@@ -42,7 +43,11 @@ async function request(path, options = {}) {
       ...defaultHeaders,
       ...(headers || {}),
     },
-    body: isFormData ? body : body ? JSON.stringify(body) : undefined,
+    body: isFormData
+      ? finalBody
+      : finalBody
+      ? JSON.stringify(finalBody)
+      : undefined,
     ...restOptions,
   });
 

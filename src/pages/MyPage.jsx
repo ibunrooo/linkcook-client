@@ -143,6 +143,7 @@ function MyPage() {
       }
 
       setProfile(data.data);
+      localStorage.setItem('linkcookNickname', data.data.nickname || '');
       setMessage('닉네임이 저장되었습니다.');
     } catch (err) {
       console.error(err);

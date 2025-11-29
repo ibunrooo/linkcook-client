@@ -19,6 +19,7 @@ function RecipeDetail() {
   const [recipe, setRecipe] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [profileNickname, setProfileNickname] = useState('');
 
   // 👍 좋아요 관련 상태
   const [likeCount, setLikeCount] = useState(0);
@@ -49,6 +50,41 @@ function RecipeDetail() {
     fetchRecipe();
   }, [id]);
 
+  useEffect(() => {
+    const syncProfile = async () => {
+      if (!isAuthenticated || !user?.sub) return;
+      try {
+        const res = await fetch('http://localhost:4000/api/users/me', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            auth0Id: user.sub,
+            email: user.email,
+            nickname: user.nickname || user.name,
+            avatar: user.picture,
+          }),
+        });
+        const data = await res.json();
+        if (res.ok && data?.data) {
+          setProfileNickname(data.data.nickname || '');
+        }
+      } catch (e) {
+        // ignore
+      }
+    };
+    syncProfile();
+  }, [isAuthenticated, user]);
+
+  const auth0Id = user?.sub;
+  const userNickname = profileNickname || user?.nickname || user?.name;
+  const isOwner =
+    isAuthenticated &&
+    ((recipe?.authorAuth0Id && recipe.authorAuth0Id === auth0Id) ||
+      (!recipe?.authorAuth0Id &&
+        recipe?.author &&
+        userNickname &&
+        recipe.author === userNickname));
+
   // 좋아요 토글 버튼 클릭
   const handleLikeClick = async () => {
     if (!isAuthenticated || !user || !recipe) return;
@@ -67,6 +103,26 @@ function RecipeDetail() {
     } catch (err) {
       console.error(err);
       alert(err.message || '좋아요 처리 중 오류가 발생했습니다.');
+    }
+  };
+
+  const handleEdit = () => {
+    navigate(`/recipes/${id}/edit`);
+  };
+
+  const handleDelete = async () => {
+    if (!isOwner || !recipe) return;
+    const ok = window.confirm('정말 삭제하시겠습니까?');
+    if (!ok) return;
+    try {
+      await apiClient.delete(`/api/recipes/${recipe._id}`, {
+        data: { auth0Id, nickname: userNickname },
+      });
+      alert('삭제되었습니다.');
+      navigate('/recipes');
+    } catch (err) {
+      console.error(err);
+      setError(err.message);
     }
   };
 
@@ -119,6 +175,38 @@ function RecipeDetail() {
         >
           {recipe.title}
         </h2>
+
+        {isOwner && (
+          <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
+            <button
+              type="button"
+              onClick={handleEdit}
+              style={{
+                border: '1px solid #d1d5db',
+                borderRadius: '10px',
+                padding: '0.45rem 0.9rem',
+                cursor: 'pointer',
+                background: '#f9fafb',
+              }}
+            >
+              수정
+            </button>
+            <button
+              type="button"
+              onClick={handleDelete}
+              style={{
+                border: '1px solid #fca5a5',
+                borderRadius: '10px',
+                padding: '0.45rem 0.9rem',
+                cursor: 'pointer',
+                background: '#fee2e2',
+                color: '#b91c1c',
+              }}
+            >
+              삭제
+            </button>
+          </div>
+        )}
 
         {/* 👍 좋아요 버튼 */}
         <div style={{ marginBottom: '1rem' }}>

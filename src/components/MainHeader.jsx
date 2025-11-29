@@ -1,6 +1,7 @@
 // src/components/MainHeader.jsx
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth0 } from "@auth0/auth0-react";
+import { useEffect, useState } from "react";
 
 const headerStyle = {
   padding: "1.5rem 2rem 1rem",
@@ -51,6 +52,49 @@ function MainHeader() {
     loginWithRedirect,
     logout,
   } = useAuth0();
+  const [displayName, setDisplayName] = useState(
+    localStorage.getItem("linkcookNickname") || ""
+  );
+
+  useEffect(() => {
+    const syncProfile = async () => {
+      if (!isAuthenticated || !user?.sub) return;
+      try {
+        const res = await fetch("http://localhost:4000/api/users/me", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            auth0Id: user.sub,
+            email: user.email,
+            nickname: user.nickname || user.name,
+            avatar: user.picture,
+          }),
+        });
+        const data = await res.json();
+        const newName =
+          (res.ok && data?.data && (data.data.nickname || data.data.name)) ||
+          user.nickname ||
+          user.name ||
+          "";
+        setDisplayName(newName);
+        localStorage.setItem("linkcookNickname", newName);
+      } catch (e) {
+        const fallback = user?.nickname || user?.name || "";
+        setDisplayName(fallback);
+      }
+    };
+    syncProfile();
+  }, [isAuthenticated, user]);
+
+  useEffect(() => {
+    const handleStorage = (e) => {
+      if (e.key === "linkcookNickname") {
+        setDisplayName(e.newValue || "");
+      }
+    };
+    window.addEventListener("storage", handleStorage);
+    return () => window.removeEventListener("storage", handleStorage);
+  }, []);
 
   const currentPath = location.pathname;
 
@@ -107,7 +151,7 @@ function MainHeader() {
         ) : isAuthenticated ? (
           <>
             <span style={{ color: "#4b5563" }}>
-              <strong>{user.nickname || user.name}</strong> 님
+              <strong>{displayName || user.nickname || user.name}</strong> 님
             </span>
 
             <button

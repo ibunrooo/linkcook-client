@@ -14,11 +14,12 @@ const pageStyle = {
 function ShareDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { user } = useAuth0();
+  const { user, isAuthenticated } = useAuth0();
 
   const [share, setShare] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [profileNickname, setProfileNickname] = useState('');
 
   // 🔹 북마크 상태
   const [bookmarked, setBookmarked] = useState(false);
@@ -49,6 +50,31 @@ function ShareDetail() {
     fetchDetail();
     // user가 나중에 로딩될 수도 있어서 user도 dependency에 포함
   }, [id, user]);
+
+  useEffect(() => {
+    const syncProfile = async () => {
+      if (!isAuthenticated || !user?.sub) return;
+      try {
+        const res = await fetch('http://localhost:4000/api/users/me', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            auth0Id: user.sub,
+            email: user.email,
+            nickname: user.nickname || user.name,
+            avatar: user.picture,
+          }),
+        });
+        const data = await res.json();
+        if (res.ok && data?.data) {
+          setProfileNickname(data.data.nickname || '');
+        }
+      } catch (e) {
+        // ignore
+      }
+    };
+    syncProfile();
+  }, [isAuthenticated, user]);
 
   const handleBookmarkClick = async () => {
     if (!user) {
@@ -105,6 +131,35 @@ function ShareDetail() {
   }
 
   const ownerName = share.owner || share.author || '';
+  const auth0Id = user?.sub;
+  const userNickname = profileNickname || user?.nickname || user?.name;
+  const isOwner =
+    isAuthenticated &&
+    ((share?.ownerAuth0Id && share.ownerAuth0Id === auth0Id) ||
+      (!share?.ownerAuth0Id &&
+        share?.owner &&
+        userNickname &&
+        share.owner === userNickname));
+
+  const handleEdit = () => {
+    navigate(`/share/${id}/edit`);
+  };
+
+  const handleDelete = async () => {
+    if (!isOwner || !share) return;
+    const ok = window.confirm('정말 삭제하시겠습니까?');
+    if (!ok) return;
+    try {
+      await apiClient.delete(`/api/share/${share._id}`, {
+        data: { auth0Id, nickname: userNickname },
+      });
+      alert('삭제되었습니다.');
+      navigate('/share');
+    } catch (err) {
+      console.error(err);
+      setError(err.message);
+    }
+  };
 
   return (
     <div style={pageStyle}>
@@ -147,6 +202,38 @@ function ShareDetail() {
         >
           {title}
         </h2>
+
+        {isOwner && (
+          <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
+            <button
+              type="button"
+              onClick={handleEdit}
+              style={{
+                border: '1px solid #d1d5db',
+                borderRadius: '10px',
+                padding: '0.45rem 0.9rem',
+                cursor: 'pointer',
+                background: '#f9fafb',
+              }}
+            >
+              수정
+            </button>
+            <button
+              type="button"
+              onClick={handleDelete}
+              style={{
+                border: '1px solid #fca5a5',
+                borderRadius: '10px',
+                padding: '0.45rem 0.9rem',
+                cursor: 'pointer',
+                background: '#fee2e2',
+                color: '#b91c1c',
+              }}
+            >
+              삭제
+            </button>
+          </div>
+        )}
 
         {/* 🔹 북마크 버튼 */}
         <button
