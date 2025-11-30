@@ -26,12 +26,14 @@ function GroupBuyList() {
   const [error, setError] = useState('');
   const [searchInput, setSearchInput] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+  const [region, setRegion] = useState('');
 
   useEffect(() => {
     const fetchGroupBuys = async () => {
+      setLoading(true);
       try {
         const { data } = await apiClient.get('/api/groupbuy', {
-          params: { q: searchQuery || undefined },
+          params: { q: searchQuery || undefined, region: region || undefined },
         });
         setGroupBuys(data || []);
       } catch (err) {
@@ -43,7 +45,12 @@ function GroupBuyList() {
     };
 
     fetchGroupBuys();
-  }, [searchQuery]);
+  }, [searchQuery, region]);
+
+  const handleRegionChange = (e) => {
+    setRegion(e.target.value);
+    setLoading(true);
+  };
 
   if (loading) return <p style={pageStyle}>공동구매 목록을 불러오는 중입니다...</p>;
   if (error) return <p style={pageStyle}>에러: {error}</p>;
@@ -106,6 +113,40 @@ function GroupBuyList() {
           🔍
         </button>
       </form>
+
+      <div style={{ marginBottom: '1rem', maxWidth: '420px' }}>
+        <label
+          style={{
+            display: 'block',
+            marginBottom: '0.35rem',
+            color: '#374151',
+            fontWeight: 600,
+          }}
+        >
+          지역 필터
+        </label>
+        <select
+          value={region}
+          onChange={handleRegionChange}
+          style={{
+            width: '100%',
+            padding: '0.6rem 0.75rem',
+            borderRadius: '10px',
+            border: '1px solid #d1d5db',
+            backgroundColor: '#fff',
+          }}
+        >
+          <option value="">전체</option>
+          <option value="서울">서울</option>
+          <option value="경기">경기</option>
+          <option value="인천">인천</option>
+          <option value="강원">강원</option>
+          <option value="충청">충청</option>
+          <option value="전라">전라</option>
+          <option value="경상">경상</option>
+          <option value="제주">제주</option>
+        </select>
+      </div>
 
       <div
         style={{
@@ -232,3 +273,7 @@ function GroupBuyList() {
 }
 
 export default GroupBuyList;
+  const handleRegionChange = (e) => {
+    setRegion(e.target.value);
+    setLoading(true);
+  };

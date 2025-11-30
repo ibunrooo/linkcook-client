@@ -23,6 +23,7 @@ function GroupBuyCreate() {
     deadline: '',
     location: '',
     image: '',
+    region: '',
   });
   const [imageFile, setImageFile] = useState(null);
   const [imageUrl, setImageUrl] = useState('');
@@ -234,11 +235,11 @@ function GroupBuyCreate() {
           </div>
 
           {/* 위치 */}
-          <div style={{ marginBottom: '1rem' }}>
-            <label style={{ display: 'block', marginBottom: '0.35rem' }}>
-              나눔 위치 (동/역 근처)
-            </label>
-            <input
+        <div style={{ marginBottom: '1rem' }}>
+          <label style={{ display: 'block', marginBottom: '0.35rem' }}>
+            나눔 위치 (동/역 근처)
+          </label>
+          <input
               type="text"
               name="location"
               value={form.location}
@@ -248,10 +249,39 @@ function GroupBuyCreate() {
                 width: '100%',
                 padding: '0.6rem 0.75rem',
                 borderRadius: '8px',
+              border: '1px solid #d1d5db',
+            }}
+          />
+        </div>
+
+          {/* 지역 선택 */}
+          <div style={{ marginBottom: '1rem' }}>
+            <label style={{ display: 'block', marginBottom: '0.35rem' }}>
+              지역
+            </label>
+            <select
+              name="region"
+              value={form.region}
+              onChange={handleChange}
+              style={{
+                width: '100%',
+                padding: '0.6rem 0.75rem',
+                borderRadius: '8px',
                 border: '1px solid #d1d5db',
-          }}
-        />
-      </div>
+                backgroundColor: '#fff',
+              }}
+            >
+              <option value="">전체</option>
+              <option value="서울">서울</option>
+              <option value="경기">경기</option>
+              <option value="인천">인천</option>
+              <option value="강원">강원</option>
+              <option value="충청">충청</option>
+              <option value="전라">전라</option>
+              <option value="경상">경상</option>
+              <option value="제주">제주</option>
+            </select>
+          </div>
 
           {/* 이미지 업로드 */}
           <div style={{ marginBottom: '1rem' }}>
